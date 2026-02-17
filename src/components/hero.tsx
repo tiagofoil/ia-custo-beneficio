@@ -15,25 +15,25 @@ export function Hero() {
         {/* Badge */}
         <div className="hero-badge">
           <span className="hero-badge-dot" />
-          <span>Sistema Online — Dados em Tempo Real</span>
+          <span>Ranking atualizado semanalmente</span>
         </div>
 
-        {/* Title */}
+        {/* Title - Smaller on mobile */}
         <h1 className="hero-title">
-          <span className="hero-title-line1">IA CUSTO</span>
-          <span className="hero-title-line2">BENEFÍCIO</span>
+          <span className="hero-title-line1">IA Custo</span>
+          <span className="hero-title-line2">Benefício</span>
         </h1>
 
         {/* Subtitle */}
         <p className="hero-subtitle">
-          Ranking inteligente de LLMs. Compare preços reais da OpenRouter 
-          com benchmarks oficiais de performance.
+          Descubra os melhores modelos de IA pelo menor preço. 
+          Compare GPT, Claude, Gemini e mais.
         </p>
 
-        {/* Buttons */}
+        {/* Buttons - Bigger text */}
         <div className="hero-buttons">
           <a href="#ranking" className="btn btn-primary">
-            Ver Ranking →
+            Ver Ranking
           </a>
           <a 
             href="https://openrouter.ai" 
@@ -41,28 +41,8 @@ export function Hero() {
             rel="noopener noreferrer"
             className="btn btn-secondary"
           >
-            Explorar Modelos ↗
+            Explorar Modelos
           </a>
-        </div>
-
-        {/* Stats */}
-        <div className="stats">
-          <div className="stat-item">
-            <div className="stat-value">300+</div>
-            <div className="stat-label">Modelos</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">4</div>
-            <div className="stat-label">Fontes</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">$0</div>
-            <div className="stat-label">Custo</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-value">∞</div>
-            <div className="stat-label">Possibilidades</div>
-          </div>
         </div>
       </div>
     </section>

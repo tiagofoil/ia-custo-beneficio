@@ -11,8 +11,7 @@ export function Navbar() {
 
         <div className="nav-links">
           <a href="#ranking" className="nav-link">Ranking</a>
-          <a href="#metodologia" className="nav-link">Metodologia</a>
-          <a href="#fontes" className="nav-link">Fontes</a>
+          <a href="#metodologia" className="nav-link">Como Funciona</a>
         </div>
 
         <a 

@@ -31,16 +31,41 @@ export function RankingTable() {
     return b.cost_benefit_scores.general - a.cost_benefit_scores.general;
   });
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}>Carregando...</div>;
+  if (loading) {
+    return (
+      <div className="glass-card" style={{ padding: 60, textAlign: 'center' }}>
+        <div style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          gap: 12 
+        }}>
+          <div style={{
+            width: 24,
+            height: 24,
+            border: '2px solid var(--accent)',
+            borderTopColor: 'transparent',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+          <span style={{ color: 'var(--text-secondary)', fontSize: 16 }}>Carregando ranking...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
       {/* Filters */}
       <div className="filters">
         {[
-          { k: "coding", l: "Código" },
-          { k: "general", l: "Geral" },
-          { k: "price", l: "Preço" },
+          { k: "coding", l: "💻 Código" },
+          { k: "general", l: "🧠 Geral" },
+          { k: "price", l: "💰 Preço" },
         ].map((f) => (
           <button
             key={f.k}
@@ -57,11 +82,11 @@ export function RankingTable() {
         <table className="table">
           <thead>
             <tr>
-              <th style={{ width: 80 }}>#</th>
+              <th style={{ width: 80 }}>Rank</th>
               <th>Modelo</th>
-              <th style={{ textAlign: 'right' }}>Input</th>
-              <th style={{ textAlign: 'right' }}>Output</th>
-              <th style={{ textAlign: 'right', width: 180 }}>Score</th>
+              <th style={{ textAlign: 'right', width: 120 }}>Input</th>
+              <th style={{ textAlign: 'right', width: 120 }}>Output</th>
+              <th style={{ textAlign: 'right', width: 200 }}>Score</th>
             </tr>
           </thead>
           <tbody>
@@ -72,6 +97,8 @@ export function RankingTable() {
                   ? m.cost_benefit_scores.coding 
                   : m.cost_benefit_scores.general;
               
+              const progressWidth = Math.min((score / 600) * 100, 100);
+              
               return (
                 <tr key={m.id}>
                   <td>
@@ -79,27 +106,48 @@ export function RankingTable() {
                       {String(i+1).padStart(2,'0')}
                     </span>
                   </td>
+                  
                   <td>
-                    <div style={{ fontWeight: 500 }}>{m.name}</div>
-                    <div className="font-mono" style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+                    <div style={{ fontWeight: 600, fontSize: 17 }}>{m.name}</div>
+                    <div className="font-mono" style={{ 
+                      fontSize: 13, 
+                      color: 'var(--text-dim)',
+                      textTransform: 'uppercase',
+                      marginTop: 4
+                    }}>
                       {m.provider}
                     </div>
                   </td>
+                  
                   <td style={{ textAlign: 'right' }}>
-                    <span className="font-mono">${m.pricing.prompt.toFixed(2)}</span>
+                    <span className="font-mono" style={{ fontSize: 15 }}>
+                      ${m.pricing.prompt.toFixed(2)}
+                    </span>
+                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>/1M tokens</div>
                   </td>
+                  
                   <td style={{ textAlign: 'right' }}>
-                    <span className="font-mono">${m.pricing.completion.toFixed(2)}</span>
+                    <span className="font-mono" style={{ fontSize: 15 }}>
+                      ${m.pricing.completion.toFixed(2)}
+                    </span>
+                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>/1M tokens</div>
                   </td>
+                  
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                       <div className="progress-bar" style={{ flex: 1 }}>
                         <div 
                           className="progress-fill"
-                          style={{ width: `${Math.min(score/6, 100)}%` }}
+                          style={{ width: `${progressWidth}%` }}
                         />
                       </div>
-                      <span className="font-mono" style={{ color: 'var(--accent)', width: 60, textAlign: 'right' }}>
+                      <span className="font-mono" style={{ 
+                        color: 'var(--accent)', 
+                        width: 70, 
+                        textAlign: 'right',
+                        fontSize: 18,
+                        fontWeight: 600
+                      }}>
                         {sortBy === "price" ? `$${score.toFixed(2)}` : score.toFixed(1)}
                       </span>
                     </div>
@@ -109,6 +157,32 @@ export function RankingTable() {
             })}
           </tbody>
         </table>
+      </div>
+
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        gap: 10,
+        marginTop: 24,
+        color: 'var(--text-dim)',
+        fontSize: 14
+      }}>
+        <span style={{
+          width: 8,
+          height: 8,
+          background: 'var(--accent)',
+          borderRadius: '50%',
+          animation: 'pulse 2s infinite'
+        }} />
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+          }
+        `}</style>
+        
+        <span>Dados atualizados automaticamente via OpenRouter</span>
       </div>
     </div>
   );
