@@ -13,13 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased">
-        <div className="ambient-bg" />
-        <div className="grid-lines" />
-        <div className="scanlines" />
-        
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

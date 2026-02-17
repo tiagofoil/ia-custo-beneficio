@@ -6,20 +6,8 @@ interface Model {
   id: string;
   name: string;
   provider: string;
-  context_length: number;
-  pricing: {
-    prompt: number;
-    completion: number;
-  };
-  benchmarks: {
-    arena_elo: number | null;
-    swe_bench_full: number | null;
-    intelligence_score: number | null;
-  };
-  cost_benefit_scores: {
-    coding: number;
-    general: number;
-  };
+  pricing: { prompt: number; completion: number };
+  cost_benefit_scores: { coding: number; general: number };
 }
 
 export function RankingTable() {
@@ -28,152 +16,99 @@ export function RankingTable() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const response = await fetch('/data/models.json');
-        const data = await response.json();
+    fetch('/data/models.json')
+      .then(r => r.json())
+      .then(data => {
         setModels(data.models || []);
-      } catch (err) {
-        console.error('Error loading data:', err);
-      } finally {
         setLoading(false);
-      }
-    }
-    loadData();
+      })
+      .catch(() => setLoading(false));
   }, []);
 
-  const sortedModels = [...models].sort((a, b) => {
+  const sorted = [...models].sort((a, b) => {
     if (sortBy === "price") return a.pricing.prompt - b.pricing.prompt;
     if (sortBy === "coding") return b.cost_benefit_scores.coding - a.cost_benefit_scores.coding;
     return b.cost_benefit_scores.general - a.cost_benefit_scores.general;
   });
 
-  const getScorePercentage = (score: number) => Math.min((score / 600) * 100, 100);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64 data-card">
-        <div className="flex items-center gap-4">
-          <div className="w-3 h-3 border-2 border-[var(--neon-cyan)] border-t-transparent rounded-full animate-spin" />
-          <span className="font-mono text-sm text-[var(--text-dim)] uppercase tracking-wider">Carregando...</span>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div style={{ textAlign: 'center', padding: 60 }}>Carregando...</div>;
 
   return (
-    <div className="space-y-8">
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap justify-center gap-2">
+    <div>
+      {/* Filters */}
+      <div className="filters">
         {[
-          { key: "coding", label: "Código", icon: "⚡" },
-          { key: "general", label: "Geral", icon: "◆" },
-          { key: "price", label: "Preço", icon: "◇" },
-        ].map((option) => (
+          { k: "coding", l: "Código" },
+          { k: "general", l: "Geral" },
+          { k: "price", l: "Preço" },
+        ].map((f) => (
           <button
-            key={option.key}
-            onClick={() => setSortBy(option.key as any)}
-            className={`px-6 py-3 font-mono text-xs uppercase tracking-[0.15em] border transition-all ${
-              sortBy === option.key
-                ? "bg-[var(--neon-cyan)] text-[var(--bg-primary)] border-[var(--neon-cyan)]"
-                : "bg-transparent text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-[var(--neon-cyan)] hover:text-[var(--neon-cyan)]"
-            }`}
+            key={f.k}
+            onClick={() => setSortBy(f.k as any)}
+            className={`filter-btn ${sortBy === f.k ? 'active' : ''}`}
           >
-            <span className="mr-2 opacity-70">{option.icon}</span>
-            {option.label}
+            {f.l}
           </button>
         ))}
       </div>
 
-      {/* Table Container */}
-      <div className="data-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="data-table w-full">
-            <thead>
-              <tr>
-                <th className="w-24 text-center">#</th>
-                <th>Modelo</th>
-                <th className="text-right w-32">Input</th>
-                <th className="text-right w-32">Output</th>
-                <th className="text-right w-56">Custo-Benefício</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedModels.map((model, index) => {
-                const rank = index + 1;
-                const isTop3 = rank <= 3;
-                
-                return (
-                  <tr key={model.id} className="group">
-                    <td className="text-center">
-                      <div className={`rank-badge mx-auto ${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}`}>
-                        {String(rank).padStart(2, '0')}
+      {/* Table */}
+      <div className="table-container">
+        <table className="table">
+          <thead>
+            <tr>
+              <th style={{ width: 80 }}>#</th>
+              <th>Modelo</th>
+              <th style={{ textAlign: 'right' }}>Input</th>
+              <th style={{ textAlign: 'right' }}>Output</th>
+              <th style={{ textAlign: 'right', width: 180 }}>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((m, i) => {
+              const score = sortBy === "price" 
+                ? m.pricing.prompt 
+                : sortBy === "coding" 
+                  ? m.cost_benefit_scores.coding 
+                  : m.cost_benefit_scores.general;
+              
+              return (
+                <tr key={m.id}>
+                  <td>
+                    <span className={`rank ${i < 3 ? `rank-${i+1}` : ''}`}>
+                      {String(i+1).padStart(2,'0')}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 500 }}>{m.name}</div>
+                    <div className="font-mono" style={{ fontSize: 12, color: 'var(--text-dim)' }}>
+                      {m.provider}
+                    </div>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <span className="font-mono">${m.pricing.prompt.toFixed(2)}</span>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <span className="font-mono">${m.pricing.completion.toFixed(2)}</span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div className="progress-bar" style={{ flex: 1 }}>
+                        <div 
+                          className="progress-fill"
+                          style={{ width: `${Math.min(score/6, 100)}%` }}
+                        />
                       </div>
-                    </td>
-
-                    <td>
-                      <div className="flex flex-col">
-                        <span className={`font-display text-lg ${isTop3 ? 'text-white font-medium' : 'text-[var(--text-secondary)]'}`}>
-                          {model.name}
-                        </span>
-                        <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)]">
-                          {model.provider}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="text-right">
-                      <div className="font-mono text-[var(--text-secondary)]">
-                        ${model.pricing.prompt.toFixed(2)}
-                        <span className="text-[var(--text-dim)] text-xs"> /1M</span>
-                      </div>
-                    </td>
-
-                    <td className="text-right">
-                      <div className="font-mono text-[var(--text-secondary)]">
-                        ${model.pricing.completion.toFixed(2)}
-                        <span className="text-[var(--text-dim)] text-xs"> /1M</span>
-                      </div>
-                    </td>
-
-                    <td>
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1 h-2 bg-[var(--border-subtle)] overflow-hidden">
-                          <div 
-                            className="progress-fill h-full"
-                            style={{ 
-                              width: `${getScorePercentage(
-                                sortBy === "price" 
-                                  ? 100 - model.pricing.prompt 
-                                  : sortBy === "coding" 
-                                    ? model.cost_benefit_scores.coding 
-                                    : model.cost_benefit_scores.general
-                              )}%` 
-                            }}
-                          />
-                        </div>
-                        <span className="font-mono text-lg text-[var(--neon-cyan)] w-20 text-right">
-                          {sortBy === "price" 
-                            ? `$${model.pricing.prompt.toFixed(2)}`
-                            : (sortBy === "coding" 
-                              ? model.cost_benefit_scores.coding 
-                              : model.cost_benefit_scores.general
-                            ).toFixed(1)
-                          }
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-center gap-3 text-[var(--text-dim)] font-mono text-xs">
-        <span className="w-2 h-2 bg-[var(--neon-cyan)] rounded-full animate-pulse" />
-        Dados atualizados automaticamente via OpenRouter API
+                      <span className="font-mono" style={{ color: 'var(--accent)', width: 60, textAlign: 'right' }}>
+                        {sortBy === "price" ? `$${score.toFixed(2)}` : score.toFixed(1)}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
