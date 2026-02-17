@@ -14,13 +14,12 @@ export default function Home() {
         
         {/* Ranking Section */}
         <section id="ranking" className="py-24 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center gap-4 mb-12">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--border-subtle)] to-transparent" />
-              <h2 className="font-display text-3xl sm:text-4xl text-white text-center">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-display text-3xl sm:text-4xl text-white">
                 RANKING <span className="text-[var(--accent-cyan)]">/</span> CUSTO-BENEFÍCIO
               </h2>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--border-subtle)] to-transparent" />
+              <div className="h-px w-32 mx-auto mt-4 bg-gradient-to-r from-transparent via-[var(--accent-cyan)] to-transparent" />
             </div>
             
             <Suspense fallback={

@@ -100,11 +100,11 @@ export function RankingTable() {
           <table className="data-table">
             <thead>
               <tr>
-                <th className="w-20">Rank</th>
-                <th>Modelo</th>
-                <th className="text-right">Input</th>
-                <th className="text-right">Output</th>
-                <th className="text-right w-48">Score</th>
+                <th className="w-24">#Rank</th>
+                <th className="w-full">Modelo</th>
+                <th className="text-right w-32">Input</th>
+                <th className="text-right w-32">Output</th>
+                <th className="text-right w-64">Score</th>
               </tr>
             </thead>
             <tbody>
