@@ -1,0 +1,19 @@
+{
+  "source": "artificial_analysis",
+  "collected_at": "2026-02-17T07:00:00Z",
+  "total_models": 12,
+  "models": [
+    {"source": "artificial_analysis", "model_name": "Claude Opus 4.6", "intelligence_score": 95, "price_input_per_1m": 15.0, "price_output_per_1m": 75.0, "output_speed_tps": 45, "latency_ttft": 1.2, "context_window": 200000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "Gemini 2.5 Pro", "intelligence_score": 92, "price_input_per_1m": 1.25, "price_output_per_1m": 5.0, "output_speed_tps": 120, "latency_ttft": 0.5, "context_window": 1000000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "GPT-4o", "intelligence_score": 88, "price_input_per_1m": 2.5, "price_output_per_1m": 10.0, "output_speed_tps": 85, "latency_ttft": 0.8, "context_window": 128000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "Claude 3.5 Sonnet", "intelligence_score": 86, "price_input_per_1m": 3.0, "price_output_per_1m": 15.0, "output_speed_tps": 95, "latency_ttft": 0.7, "context_window": 200000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "DeepSeek V3", "intelligence_score": 85, "price_input_per_1m": 0.14, "price_output_per_1m": 0.28, "output_speed_tps": 95, "latency_ttft": 0.6, "context_window": 64000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "GPT-4o Mini", "intelligence_score": 82, "price_input_per_1m": 0.15, "price_output_per_1m": 0.6, "output_speed_tps": 150, "latency_ttft": 0.4, "context_window": 128000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "Claude 3 Haiku", "intelligence_score": 78, "price_input_per_1m": 0.25, "price_output_per_1m": 1.25, "output_speed_tps": 180, "latency_ttft": 0.3, "context_window": 200000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "Gemini 2.5 Flash", "intelligence_score": 85, "price_input_per_1m": 0.15, "price_output_per_1m": 0.6, "output_speed_tps": 200, "latency_ttft": 0.3, "context_window": 1000000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "Kimi K2.5", "intelligence_score": 84, "price_input_per_1m": 0.5, "price_output_per_1m": 2.0, "output_speed_tps": 110, "latency_ttft": 0.6, "context_window": 256000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "GLM-5", "intelligence_score": 83, "price_input_per_1m": 0.5, "price_output_per_1m": 1.5, "output_speed_tps": 100, "latency_ttft": 0.7, "context_window": 128000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "MiniMax M2.5", "intelligence_score": 81, "price_input_per_1m": 0.15, "price_output_per_1m": 0.6, "output_speed_tps": 90, "latency_ttft": 0.8, "context_window": 100000, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "artificial_analysis", "model_name": "Qwen 3.5 Plus", "intelligence_score": 80, "price_input_per_1m": 0.8, "price_output_per_1m": 2.4, "output_speed_tps": 120, "latency_ttft": 0.5, "context_window": 1000000, "collected_at": "2026-02-17T07:00:00Z"}
+  ]
+}

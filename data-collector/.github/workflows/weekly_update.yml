@@ -25,6 +25,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r data-collector/requirements.txt
         
+    - name: Install Playwright browsers
+      run: |
+        python -m playwright install chromium
+        
     - name: Run weekly update
       run: python data-collector/scripts/run_weekly.py
       

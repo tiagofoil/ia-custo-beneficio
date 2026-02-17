@@ -1,0 +1,22 @@
+{
+  "source": "swebench",
+  "collected_at": "2026-02-17T07:00:00Z",
+  "total_models": 15,
+  "models": [
+    {"source": "swebench", "model_name": "Claude Opus 4.6", "swe_bench_full": 72.3, "swe_bench_verified": 82.1, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "MiniMax M2.5", "swe_bench_full": 80.2, "swe_bench_verified": 88.5, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "GLM-5", "swe_bench_full": 77.8, "swe_bench_verified": 85.2, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "Gemini 2.5 Pro", "swe_bench_full": 63.8, "swe_bench_verified": 74.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "Kimi K2.5", "swe_bench_full": 64.5, "swe_bench_verified": 71.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "o1-preview", "swe_bench_full": 41.0, "swe_bench_verified": 53.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "DeepSeek V3", "swe_bench_full": 42.0, "swe_bench_verified": 48.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "Claude 3.5 Sonnet", "swe_bench_full": 27.0, "swe_bench_verified": 38.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "o1-mini", "swe_bench_full": 30.0, "swe_bench_verified": 41.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "GPT-4", "swe_bench_full": 14.0, "swe_bench_verified": 18.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "GPT-4o", "swe_bench_full": 16.0, "swe_bench_verified": 21.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "Claude 3 Opus", "swe_bench_full": 22.0, "swe_bench_verified": 28.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "Claude 3.5 Haiku", "swe_bench_full": 18.0, "swe_bench_verified": 24.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "GPT-4o Mini", "swe_bench_full": 12.5, "swe_bench_verified": 16.0, "collected_at": "2026-02-17T07:00:00Z"},
+    {"source": "swebench", "model_name": "Claude 3 Haiku", "swe_bench_full": 8.5, "swe_bench_verified": 11.0, "collected_at": "2026-02-17T07:00:00Z"}
+  ]
+}
