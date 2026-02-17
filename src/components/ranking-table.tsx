@@ -63,9 +63,9 @@ export function RankingTable() {
       {/* Filters */}
       <div className="filters">
         {[
-          { k: "coding", l: "💻 Código" },
-          { k: "general", l: "🧠 Geral" },
-          { k: "price", l: "💰 Preço" },
+          { k: "coding", l: "Código" },
+          { k: "general", l: "Geral" },
+          { k: "price", l: "Preço" },
         ].map((f) => (
           <button
             key={f.k}
