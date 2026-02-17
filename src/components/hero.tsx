@@ -10,92 +10,114 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated Grid */}
-      <div className="absolute inset-0 grid-bg opacity-50" />
-      
-      <div className="relative w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
-        {/* Live Data Badge */}
-        <div 
-          className={`flex justify-center mb-8 transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-        >
-          <div className="data-badge">
-            Sistema Online — Dados atualizados em tempo real
-          </div>
-        </div>
-
-        {/* Main Headline */}
-        <h1 
-          className={`font-display text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.85] transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-        >
-          <span className="block text-white">IA</span>
-          <span className="block text-[var(--text-muted)]">CUSTO</span>
-          <span className="block text-[var(--accent-cyan)] glow-cyan">BENEFÍCIO</span>
-        </h1>
-
-        {/* Subtitle */}
-        <div 
-          className={`max-w-2xl mx-auto mt-8 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-        >
-          <p className="text-[var(--text-secondary)] text-lg md:text-xl leading-relaxed">
-            Ranking inteligente de modelos de IA. Compare preços reais da OpenRouter 
-            com benchmarks oficiais de performance.
-          </p>
-        </div>
-
-        {/* CTA Buttons */}
-        <div 
-          className={`flex flex-wrap justify-center gap-4 mt-10 transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-        >
-          <a href="#ranking" className="btn btn-primary">
-            Ver Ranking
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </a>
-
-          <a 
-            href="https://openrouter.ai" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="btn btn-secondary"
-          >
-            Explorar Modelos
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        </div>
-
-        {/* Stats Row */}
-        <div 
-          className={`grid grid-cols-2 md:grid-cols-4 gap-px mt-20 bg-[var(--border-subtle)] terminal-block max-w-4xl mx-auto transition-all duration-700 delay-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-        >
-          {[
-            { value: "300+", label: "Modelos indexados", suffix: "" },
-            { value: "4", label: "Fontes de dados", suffix: "" },
-            { value: "$0", label: "Custo de uso", suffix: "" },
-            { value: "∞", label: "Possibilidades", suffix: "" },
-          ].map((stat, i) => (
+    <section className="relative min-h-screen flex flex-col justify-center overflow-hidden">
+      <div className="relative w-full px-6 md:px-12 lg:px-20 py-32">
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          
+          {/* Left: Typography */}
+          <div className="relative">
+            {/* Label */}
             <div 
-              key={i} 
-              className="bg-[var(--bg-surface-1)] p-6 sm:p-8 group hover:bg-[var(--bg-surface-2)] transition-colors"
+              className={`flex items-center gap-3 mb-8 transition-all duration-700 ${
+                mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
+              }`}
             >
-              <div className="font-display text-3xl sm:text-4xl text-white group-hover:text-[var(--accent-cyan)] transition-colors">
-                {stat.value}
-                <span className="text-[var(--accent-cyan)]">{stat.suffix}</span>
+              <div className="w-2 h-2 bg-[var(--neon-cyan)] animate-pulse" />
+              <span className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--text-dim)]">
+                Sistema Online — Dados em Tempo Real
+              </span>
+            </div>
+
+            {/* Main Title */}
+            <div 
+              className={`space-y-2 transition-all duration-700 delay-100 ${
+                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+            >
+              <span className="block font-display text-6xl md:text-7xl lg:text-8xl font-light text-white tracking-tight">
+                IA
+              </span>
+              <span className="block font-display text-6xl md:text-7xl lg:text-8xl font-bold text-[var(--neon-cyan)] text-glow-cyan tracking-tight">
+                CUSTO
+              </span>
+              <span className="block font-display text-6xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight">
+                BENEFÍCIO
+              </span>
+            </div>
+
+            {/* Description */}
+            <p 
+              className={`mt-8 text-lg text-[var(--text-secondary)] max-w-md leading-relaxed transition-all duration-700 delay-200 ${
+                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+            >
+              Ranking inteligente de LLMs. Compare preços reais da OpenRouter 
+              com benchmarks oficiais de performance.
+            </p>
+
+            {/* CTAs */}
+            <div 
+              className={`flex flex-wrap gap-4 mt-10 transition-all duration-700 delay-300 ${
+                mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+            >
+              <a href="#ranking" className="btn-cyber btn-cyber-primary">
+                Ver Ranking
+              </a>
+              <a 
+                href="https://openrouter.ai" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="btn-cyber"
+              >
+                Explorar Modelos →
+              </a>
+            </div>
+          </div>
+
+          {/* Right: Stats Panel */}
+          <div 
+            className={`relative transition-all duration-700 delay-400 ${
+              mounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+            }`}
+          >
+            <div className="data-card p-8 box-glow">
+              {/* Decorative Corners */}
+              <span className="corner-accent corner-tl" />
+              <span className="corner-accent corner-tr" />
+              <span className="corner-accent corner-bl" />
+              <span className="corner-accent corner-br" />
+
+              <div className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--text-dim)] mb-6">
+                Estatísticas do Sistema
               </div>
-              <div className="font-mono text-xs text-[var(--text-muted)] uppercase tracking-wider mt-2">
-                {stat.label}
+
+              <div className="grid grid-cols-2 gap-6">
+                {[
+                  { value: "300+", label: "Modelos Indexados" },
+                  { value: "4", label: "Fontes de Dados" },
+                  { value: "$0", label: "Custo de Uso" },
+                  { value: "∞", label: "Possibilidades" },
+                ].map((stat, i) => (
+                  <div key={i} className="border-l-2 border-[var(--neon-cyan)]/30 pl-4">
+                    <div className="font-display text-3xl font-bold text-white">{stat.value}</div>
+                    <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)] mt-1">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+
+            {/* Floating Element */}
+            <div className="absolute -bottom-4 -right-4 w-24 h-24 border border-[var(--neon-pink)]/30 opacity-50" />
+          </div>
         </div>
       </div>
 
-      {/* Decorative Elements */}
-      <div className="absolute top-1/4 left-8 w-px h-32 bg-gradient-to-b from-transparent via-[var(--accent-cyan)] to-transparent opacity-30" />
-      <div className="absolute bottom-1/4 right-8 w-px h-32 bg-gradient-to-b from-transparent via-[var(--accent-magenta)] to-transparent opacity-30" />
+      {/* Bottom Line */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--neon-cyan)]/50 to-transparent" />
     </section>
   );
 }

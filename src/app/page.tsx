@@ -13,18 +13,28 @@ export default function Home() {
         <Hero />
         
         {/* Ranking Section */}
-        <section id="ranking" className="py-24 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="font-display text-3xl sm:text-4xl text-white">
-                RANKING <span className="text-[var(--accent-cyan)]">/</span> CUSTO-BENEFÍCIO
+        <section id="ranking" className="py-24 px-6 md:px-12 lg:px-20">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 mb-6">
+                <span className="w-8 h-px bg-[var(--neon-cyan)]" />
+                <span className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--neon-cyan)]">Ranking</span>
+                <span className="w-8 h-px bg-[var(--neon-cyan)]" />
+              </div>
+              
+              <h2 className="font-display text-4xl md:text-5xl text-white mb-4">
+                Melhor Custo-Benefício
               </h2>
-              <div className="h-px w-32 mx-auto mt-4 bg-gradient-to-r from-transparent via-[var(--accent-cyan)] to-transparent" />
+              
+              <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
+                Modelos ordenados pelo melhor desempenho por dólar gasto. 
+                Dados atualizados semanalmente.
+              </p>
             </div>
             
             <Suspense fallback={
-              <div className="flex items-center justify-center h-64 terminal-block">
-                <span className="font-mono text-sm text-[var(--text-muted)]">CARREGANDO...</span>
+              <div className="flex items-center justify-center h-64 data-card">
+                <span className="font-mono text-sm text-[var(--text-dim)]">CARREGANDO...</span>
               </div>
             }>
               <RankingTable />
@@ -33,62 +43,58 @@ export default function Home() {
         </section>
         
         {/* Methodology Section */}
-        <section id="metodologia" className="py-24 px-4 sm:px-6 lg:px-8 bg-[var(--bg-surface-1)]">
+        <section id="metodologia" className="py-24 px-6 md:px-12 lg:px-20 bg-[var(--bg-surface)]">
           <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="grid lg:grid-cols-2 gap-16">
               <div>
-                <div className="data-badge mb-6">Metodologia</div>
-                <h2 className="font-display text-4xl sm:text-5xl text-white mb-6">
-                  Como calculamos o <span className="text-[var(--accent-cyan)] glow-cyan">CUSTO-BENEFÍCIO</span>
+                <div className="inline-flex items-center gap-2 mb-6">
+                  <span className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--neon-pink)]">Metodologia</span>
+                </div>
+                
+                <h2 className="font-display text-4xl md:text-5xl text-white mb-6">
+                  Como Calculamos
                 </h2>
                 
                 <p className="text-[var(--text-secondary)] text-lg leading-relaxed mb-8">
                   Nossa fórmula combina dados reais de preços da OpenRouter com 
-                  benchmarks oficiais de performance para encontrar os modelos 
-                  que entregam o máximo de valor por dólar gasto.
+                  benchmarks oficiais para encontrar o máximo valor por dólar gasto.
                 </p>
 
-                <div className="font-mono text-sm bg-[var(--bg-surface-2)] p-6 border border-[var(--border-subtle)]">
-                  <div className="text-[var(--text-muted)] mb-2">// Fórmula de cálculo</div>
-                  <div className="text-[var(--accent-cyan)]">score = (performance / preço) × 100</div>
+                <div className="font-mono text-sm bg-[var(--bg-card)] p-6 border border-[var(--border-subtle)]">
+                  <div className="text-[var(--text-dim)] mb-2">// Fórmula</div>
+                  <div className="text-[var(--neon-cyan)]">score = (performance / preço) × 100</div>
                 </div>
               </div>
 
-              <div className="grid gap-4">
+              <div className="space-y-4">
                 {[
                   { 
                     num: "01", 
                     title: "Preço Real", 
-                    desc: "Coletamos preços atualizados da OpenRouter API em tempo real.",
-                    icon: "💰"
+                    desc: "Dados em tempo real da OpenRouter API",
+                    color: "cyan"
                   },
                   { 
                     num: "02", 
-                    title: "Benchmarks Oficiais", 
-                    desc: "SWE-bench, Arena ELO, e Artificial Analysis para medir performance.",
-                    icon: "📊"
+                    title: "Benchmarks", 
+                    desc: "SWE-bench, Arena ELO, Artificial Analysis",
+                    color: "pink"
                   },
                   { 
                     num: "03", 
-                    title: "Fórmula Justa", 
-                    desc: "Score = (Performance / Preço) × 100. Quanto maior, melhor.",
-                    icon: "🎯"
+                    title: "Cálculo Justo", 
+                    desc: "Quanto maior o score, melhor o custo-benefício",
+                    color: "purple"
                   },
                 ].map((step, i) => (
-                  <div 
-                    key={i} 
-                    className="terminal-block p-6 group hover:border-[var(--accent-cyan)]/50 transition-colors"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="font-display text-3xl text-[var(--text-muted)] group-hover:text-[var(--accent-cyan)] transition-colors">
+                  <div key={i} className="data-card p-6 group">
+                    <div className="flex items-start gap-6">
+                      <div className={`font-display text-4xl font-bold text-[var(--neon-${step.color})] opacity-50 group-hover:opacity-100 transition-opacity`}>
                         {step.num}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xl">{step.icon}</span>
-                          <h3 className="font-display text-lg text-white">{step.title}</h3>
-                        </div>
-                        <p className="text-[var(--text-secondary)] text-sm">{step.desc}</p>
+                      <div>
+                        <h3 className="font-display text-xl text-white mb-2">{step.title}</h3>
+                        <p className="text-[var(--text-secondary)]">{step.desc}</p>
                       </div>
                     </div>
                   </div>
@@ -99,12 +105,14 @@ export default function Home() {
         </section>
         
         {/* Sources Section */}
-        <section id="fontes" className="py-24 px-4 sm:px-6 lg:px-8">
+        <section id="fontes" className="py-24 px-6 md:px-12 lg:px-20">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="data-badge mb-6 mx-auto">Fontes de Dados</div>
+            <div className="inline-flex items-center gap-2 mb-6">
+              <span className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--neon-purple)]">Fontes</span>
+            </div>
             
-            <h2 className="font-display text-3xl sm:text-4xl text-white mb-12">
-              DADOS CONFIÁVEIS <span className="text-[var(--accent-magenta)]">/</span> VERIFICADOS
+            <h2 className="font-display text-4xl md:text-5xl text-white mb-12">
+              Dados Confiáveis
             </h2>
             
             <div className="grid sm:grid-cols-2 gap-4">
@@ -119,14 +127,14 @@ export default function Home() {
                   href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="terminal-block p-6 text-left group hover:border-[var(--accent-cyan)] transition-colors"
+                  className="data-card p-6 text-left group"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-display text-lg text-white group-hover:text-[var(--accent-cyan)] transition-colors">
+                    <span className="font-display text-xl text-white group-hover:text-[var(--neon-cyan)] transition-colors">
                       {source.name}
                     </span>
                     <svg 
-                      className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent-cyan)] transition-colors" 
+                      className="w-4 h-4 text-[var(--text-dim)] group-hover:text-[var(--neon-cyan)] transition-colors" 
                       fill="none" 
                       stroke="currentColor" 
                       viewBox="0 0 24 24"
@@ -134,7 +142,7 @@ export default function Home() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </div>
-                  <p className="font-mono text-xs text-[var(--text-muted)] uppercase tracking-wider">
+                  <p className="font-mono text-xs text-[var(--text-dim)] uppercase tracking-wider">
                     {source.desc}
                   </p>
                 </a>

@@ -48,137 +48,131 @@ export function RankingTable() {
     return b.cost_benefit_scores.general - a.cost_benefit_scores.general;
   });
 
-  const getRankClass = (rank: number) => {
-    if (rank === 0) return "rank-1";
-    if (rank === 1) return "rank-2";
-    if (rank === 2) return "rank-3";
-    return "";
-  };
-
-  const getScorePercentage = (score: number) => {
-    return Math.min((score / 600) * 100, 100);
-  };
+  const getScorePercentage = (score: number) => Math.min((score / 600) * 100, 100);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 terminal-block">
+      <div className="flex items-center justify-center h-64 data-card">
         <div className="flex items-center gap-4">
-          <div className="w-2 h-2 bg-[var(--accent-cyan)] animate-pulse" />
-          <span className="font-mono text-sm text-[var(--text-muted)]">CARREGANDO DADOS...</span>
+          <div className="w-3 h-3 border-2 border-[var(--neon-cyan)] border-t-transparent rounded-full animate-spin" />
+          <span className="font-mono text-sm text-[var(--text-dim)] uppercase tracking-wider">Carregando...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Sort Controls */}
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-8">
+      {/* Filter Tabs */}
+      <div className="flex flex-wrap justify-center gap-2">
         {[
-          { key: "coding", label: "Código", icon: "💻" },
-          { key: "general", label: "Geral", icon: "🧠" },
-          { key: "price", label: "Preço", icon: "💰" },
+          { key: "coding", label: "Código", icon: "⚡" },
+          { key: "general", label: "Geral", icon: "◆" },
+          { key: "price", label: "Preço", icon: "◇" },
         ].map((option) => (
           <button
             key={option.key}
             onClick={() => setSortBy(option.key as any)}
-            className={`px-4 py-2 font-mono text-xs uppercase tracking-wider border transition-all ${
+            className={`px-6 py-3 font-mono text-xs uppercase tracking-[0.15em] border transition-all ${
               sortBy === option.key
-                ? "bg-[var(--accent-cyan)] text-[var(--bg-primary)] border-[var(--accent-cyan)]"
-                : "bg-transparent text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-[var(--accent-cyan)] hover:text-white"
+                ? "bg-[var(--neon-cyan)] text-[var(--bg-primary)] border-[var(--neon-cyan)]"
+                : "bg-transparent text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-[var(--neon-cyan)] hover:text-[var(--neon-cyan)]"
             }`}
           >
-            <span className="mr-2">{option.icon}</span>
+            <span className="mr-2 opacity-70">{option.icon}</span>
             {option.label}
           </button>
         ))}
       </div>
 
-      {/* Table */}
-      <div className="terminal-block overflow-hidden">
+      {/* Table Container */}
+      <div className="data-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="data-table">
+          <table className="data-table w-full">
             <thead>
               <tr>
-                <th className="w-24">#Rank</th>
-                <th className="w-full">Modelo</th>
+                <th className="w-24 text-center">#</th>
+                <th>Modelo</th>
                 <th className="text-right w-32">Input</th>
                 <th className="text-right w-32">Output</th>
-                <th className="text-right w-64">Score</th>
+                <th className="text-right w-56">Custo-Benefício</th>
               </tr>
             </thead>
             <tbody>
-              {sortedModels.map((model, index) => (
-                <tr key={model.id} className="group">
-                  <td>
-                    <div className={`rank-number ${getRankClass(index)}`}>
-                      {String(index + 1).padStart(2, '0')}
-                    </div>
-                  </td>
-
-                  <td>
-                    <div className="flex flex-col">
-                      <span className="font-medium text-white text-lg">{model.name}</span>
-                      <span className="font-mono text-xs text-[var(--text-muted)] uppercase tracking-wider">
-                        {model.provider}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className="text-right">
-                    <div className="flex flex-col items-end">
-                      <span className="font-mono text-white">
-                        ${model.pricing.prompt.toFixed(2)}
-                      </span>
-                      <span className="font-mono text-[10px] text-[var(--text-muted)]">/1M tokens</span>
-                    </div>
-                  </td>
-
-                  <td className="text-right">
-                    <div className="flex flex-col items-end">
-                      <span className="font-mono text-white">
-                        ${model.pricing.completion.toFixed(2)}
-                      </span>
-                      <span className="font-mono text-[10px] text-[var(--text-muted)]">/1M tokens</span>
-                    </div>
-                  </td>
-
-                  <td>
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 progress-bar">
-                        <div 
-                          className="progress-bar-fill"
-                          style={{ 
-                            width: `${getScorePercentage(
-                              sortBy === "price" 
-                                ? 100 - model.pricing.prompt 
-                                : sortBy === "coding" 
-                                  ? model.cost_benefit_scores.coding 
-                                  : model.cost_benefit_scores.general
-                            )}%` 
-                          }}
-                        />
+              {sortedModels.map((model, index) => {
+                const rank = index + 1;
+                const isTop3 = rank <= 3;
+                
+                return (
+                  <tr key={model.id} className="group">
+                    <td className="text-center">
+                      <div className={`rank-badge mx-auto ${rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : ''}`}>
+                        {String(rank).padStart(2, '0')}
                       </div>
-                      <span className="font-mono text-lg text-[var(--accent-cyan)] w-16 text-right">
-                        {sortBy === "price" 
-                          ? `$${model.pricing.prompt.toFixed(2)}`
-                          : (sortBy === "coding" 
-                            ? model.cost_benefit_scores.coding 
-                            : model.cost_benefit_scores.general
-                          ).toFixed(1)
-                        }
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+
+                    <td>
+                      <div className="flex flex-col">
+                        <span className={`font-display text-lg ${isTop3 ? 'text-white font-medium' : 'text-[var(--text-secondary)]'}`}>
+                          {model.name}
+                        </span>
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-dim)]">
+                          {model.provider}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="text-right">
+                      <div className="font-mono text-[var(--text-secondary)]">
+                        ${model.pricing.prompt.toFixed(2)}
+                        <span className="text-[var(--text-dim)] text-xs"> /1M</span>
+                      </div>
+                    </td>
+
+                    <td className="text-right">
+                      <div className="font-mono text-[var(--text-secondary)]">
+                        ${model.pricing.completion.toFixed(2)}
+                        <span className="text-[var(--text-dim)] text-xs"> /1M</span>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 h-2 bg-[var(--border-subtle)] overflow-hidden">
+                          <div 
+                            className="progress-fill h-full"
+                            style={{ 
+                              width: `${getScorePercentage(
+                                sortBy === "price" 
+                                  ? 100 - model.pricing.prompt 
+                                  : sortBy === "coding" 
+                                    ? model.cost_benefit_scores.coding 
+                                    : model.cost_benefit_scores.general
+                              )}%` 
+                            }}
+                          />
+                        </div>
+                        <span className="font-mono text-lg text-[var(--neon-cyan)] w-20 text-right">
+                          {sortBy === "price" 
+                            ? `$${model.pricing.prompt.toFixed(2)}`
+                            : (sortBy === "coding" 
+                              ? model.cost_benefit_scores.coding 
+                              : model.cost_benefit_scores.general
+                            ).toFixed(1)
+                          }
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 text-[var(--text-muted)] font-mono text-xs">
-        <span className="w-2 h-2 bg-[var(--accent-cyan)] rounded-full animate-pulse" />
+      <div className="flex items-center justify-center gap-3 text-[var(--text-dim)] font-mono text-xs">
+        <span className="w-2 h-2 bg-[var(--neon-cyan)] rounded-full animate-pulse" />
         Dados atualizados automaticamente via OpenRouter API
       </div>
     </div>
