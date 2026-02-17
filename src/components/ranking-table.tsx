@@ -24,191 +24,151 @@ interface Model {
 
 export function RankingTable() {
   const [models, setModels] = useState<Model[]>([]);
-  const [sortBy, setSortBy] = useState<"price" | "coding" | "general">("coding");
+  const [sortBy, setSortBy] = useState<"coding" | "general" | "price">("coding");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
         const response = await fetch('/data/models.json');
-        if (!response.ok) {
-          throw new Error('Failed to load data');
-        }
         const data = await response.json();
         setModels(data.models || []);
       } catch (err) {
         console.error('Error loading data:', err);
-        setError('Erro ao carregar dados. Tente novamente.');
       } finally {
         setLoading(false);
       }
     }
-
     loadData();
   }, []);
 
   const sortedModels = [...models].sort((a, b) => {
-    if (sortBy === "price") {
-      return a.pricing.prompt - b.pricing.prompt;
-    } else if (sortBy === "coding") {
-      return b.cost_benefit_scores.coding - a.cost_benefit_scores.coding;
-    } else {
-      return b.cost_benefit_scores.general - a.cost_benefit_scores.general;
-    }
+    if (sortBy === "price") return a.pricing.prompt - b.pricing.prompt;
+    if (sortBy === "coding") return b.cost_benefit_scores.coding - a.cost_benefit_scores.coding;
+    return b.cost_benefit_scores.general - a.cost_benefit_scores.general;
   });
+
+  const getRankClass = (rank: number) => {
+    if (rank === 0) return "rank-1";
+    if (rank === 1) return "rank-2";
+    if (rank === 2) return "rank-3";
+    return "";
+  };
+
+  const getScorePercentage = (score: number) => {
+    return Math.min((score / 600) * 100, 100);
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-2 border-[#00D9FF] border-t-transparent animate-spin" />
-          <span className="text-[#808080]">Carregando modelos...</span>
+      <div className="flex items-center justify-center h-64 terminal-block">
+        <div className="flex items-center gap-4">
+          <div className="w-2 h-2 bg-[var(--accent-cyan)] animate-pulse" />
+          <span className="font-mono text-sm text-[var(--text-muted)]">CARREGANDO DADOS...</span>
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-[#EF4444]">{error}</div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Sort buttons */}
-      <div className="flex flex-wrap gap-3 justify-center">
-        <button
-          onClick={() => setSortBy("coding")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            sortBy === "coding"
-              ? "bg-[#00D9FF] text-[#0A0A0A]"
-              : "bg-[#1E1E1E] text-[#808080] hover:text-[#EAEAEA] border border-[#2A2A2A]"
-          }`}
-        >
-          💻 Código (SWE-bench)
-        </button>
-        <button
-          onClick={() => setSortBy("general")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            sortBy === "general"
-              ? "bg-[#00D9FF] text-[#0A0A0A]"
-              : "bg-[#1E1E1E] text-[#808080] hover:text-[#EAEAEA] border border-[#2A2A2A]"
-          }`}
-        >
-          🧠 Geral (Intelligence)
-        </button>
-        <button
-          onClick={() => setSortBy("price")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            sortBy === "price"
-              ? "bg-[#00D9FF] text-[#0A0A0A]"
-              : "bg-[#1E1E1E] text-[#808080] hover:text-[#EAEAEA] border border-[#2A2A2A]"
-          }`}
-        >
-          💰 Preço (Input)
-        </button>
+      {/* Sort Controls */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          { key: "coding", label: "Código", icon: "💻" },
+          { key: "general", label: "Geral", icon: "🧠" },
+          { key: "price", label: "Preço", icon: "💰" },
+        ].map((option) => (
+          <button
+            key={option.key}
+            onClick={() => setSortBy(option.key as any)}
+            className={`px-4 py-2 font-mono text-xs uppercase tracking-wider border transition-all ${
+              sortBy === option.key
+                ? "bg-[var(--accent-cyan)] text-[var(--bg-primary)] border-[var(--accent-cyan)]"
+                : "bg-transparent text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-[var(--accent-cyan)] hover:text-white"
+            }`}
+          >
+            <span className="mr-2">{option.icon}</span>
+            {option.label}
+          </button>
+        ))}
       </div>
 
       {/* Table */}
-      <div className="bg-[#141414] rounded-xl border border-[#2A2A2A] overflow-hidden">
+      <div className="terminal-block overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-[#1E1E1E]">
+          <table className="data-table">
+            <thead>
               <tr>
-                <th className="text-left py-4 px-6 text-xs font-medium text-[#808080] uppercase tracking-wider">
-                  Rank
-                </th>
-                <th className="text-left py-4 px-6 text-xs font-medium text-[#808080] uppercase tracking-wider">
-                  Modelo
-                </th>
-                <th className="text-right py-4 px-6 text-xs font-medium text-[#808080] uppercase tracking-wider">
-                  Preço Input
-                </th>
-                <th className="text-right py-4 px-6 text-xs font-medium text-[#808080] uppercase tracking-wider">
-                  Preço Output
-                </th>
-                <th className="text-right py-4 px-6 text-xs font-medium text-[#808080] uppercase tracking-wider">
-                  {sortBy === "coding" ? "Custo-Benefício 💻" : sortBy === "general" ? "Custo-Benefício 🧠" : "Contexto"}
-                </th>
+                <th className="w-20">Rank</th>
+                <th>Modelo</th>
+                <th className="text-right">Input</th>
+                <th className="text-right">Output</th>
+                <th className="text-right w-48">Score</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#2A2A2A]">
+            <tbody>
               {sortedModels.map((model, index) => (
-                <tr
-                  key={model.id}
-                  className="hover:bg-[#1E1E1E] transition-colors group"
-                >
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
-                          index < 3
-                            ? "bg-[#00D9FF]/10 text-[#00D9FF]"
-                            : "bg-[#1E1E1E] text-[#808080]"
-                        }`}
-                      >
-                        {index + 1}
-                      </span>
-                      {index < 3 && (
-                        <span className="text-lg">
-                          {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
-                        </span>
-                      )}
+                <tr key={model.id} className="group">
+                  <td>
+                    <div className={`rank-number ${getRankClass(index)}`}>
+                      {String(index + 1).padStart(2, '0')}
                     </div>
                   </td>
-                  
-                  <td className="py-4 px-6">
+
+                  <td>
                     <div className="flex flex-col">
-                      <span className="font-medium text-[#EAEAEA]">{model.name}</span>
-                      <span className="text-sm text-[#666666] capitalize">{model.provider}</span>
+                      <span className="font-medium text-white text-lg">{model.name}</span>
+                      <span className="font-mono text-xs text-[var(--text-muted)] uppercase tracking-wider">
+                        {model.provider}
+                      </span>
                     </div>
                   </td>
-                  
-                  <td className="py-4 px-6 text-right">
-                    <span className="font-mono text-[#EAEAEA]">
-                      ${model.pricing.prompt.toFixed(2)}
-                    </span>
-                    <span className="text-sm text-[#666666] ml-1">/1M</span>
-                  </td>
-                  
-                  <td className="py-4 px-6 text-right">
-                    <span className="font-mono text-[#EAEAEA]">
-                      ${model.pricing.completion.toFixed(2)}
-                    </span>
-                    <span className="text-sm text-[#666666] ml-1">/1M</span>
-                  </td>
-                  
-                  <td className="py-4 px-6 text-right">
-                    {sortBy === "price" ? (
-                      <span className="font-mono text-[#EAEAEA]">
-                        {(model.context_length / 1000).toFixed(0)}k
+
+                  <td className="text-right">
+                    <div className="flex flex-col items-end">
+                      <span className="font-mono text-white">
+                        ${model.pricing.prompt.toFixed(2)}
                       </span>
-                    ) : (
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-24 h-2 bg-[#2A2A2A] rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[#00D9FF] rounded-full transition-all"
-                            style={{
-                              width: `${Math.min(
-                                (sortBy === "coding"
-                                  ? model.cost_benefit_scores.coding
-                                  : model.cost_benefit_scores.general) / 10,
-                                100
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                        <span className="font-mono text-[#00D9FF] w-16 text-right">
-                          {sortBy === "coding"
-                            ? model.cost_benefit_scores.coding.toFixed(1)
-                            : model.cost_benefit_scores.general.toFixed(1)}
-                        </span>
+                      <span className="font-mono text-[10px] text-[var(--text-muted)]">/1M tokens</span>
+                    </div>
+                  </td>
+
+                  <td className="text-right">
+                    <div className="flex flex-col items-end">
+                      <span className="font-mono text-white">
+                        ${model.pricing.completion.toFixed(2)}
+                      </span>
+                      <span className="font-mono text-[10px] text-[var(--text-muted)]">/1M tokens</span>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 progress-bar">
+                        <div 
+                          className="progress-bar-fill"
+                          style={{ 
+                            width: `${getScorePercentage(
+                              sortBy === "price" 
+                                ? 100 - model.pricing.prompt 
+                                : sortBy === "coding" 
+                                  ? model.cost_benefit_scores.coding 
+                                  : model.cost_benefit_scores.general
+                            )}%` 
+                          }}
+                        />
                       </div>
-                    )}
+                      <span className="font-mono text-lg text-[var(--accent-cyan)] w-16 text-right">
+                        {sortBy === "price" 
+                          ? `$${model.pricing.prompt.toFixed(2)}`
+                          : (sortBy === "coding" 
+                            ? model.cost_benefit_scores.coding 
+                            : model.cost_benefit_scores.general
+                          ).toFixed(1)
+                        }
+                      </span>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -217,9 +177,10 @@ export function RankingTable() {
         </div>
       </div>
 
-      <p className="text-center text-sm text-[#666666]">
-        💡 Clique nos botões acima para ordenar por diferentes critérios
-      </p>
+      <div className="flex items-center gap-2 text-[var(--text-muted)] font-mono text-xs">
+        <span className="w-2 h-2 bg-[var(--accent-cyan)] rounded-full animate-pulse" />
+        Dados atualizados automaticamente via OpenRouter API
+      </div>
     </div>
   );
 }
