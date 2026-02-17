@@ -11,6 +11,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from collectors.openrouter import fetch_openrouter_models, normalize_model
+from collectors.arena import fetch_arena_leaderboard, normalize_arena_model
+from collectors.swebench import fetch_swebench_leaderboard, normalize_swebench_model
+from collectors.artificial import fetch_artificial_leaderboard, normalize_artificial_model
 
 
 def run_weekly_update():
@@ -28,26 +31,41 @@ def run_weekly_update():
     print("📡 1/4 Coletando dados da OpenRouter...")
     openrouter_models = fetch_openrouter_models()
     if openrouter_models:
-        normalized = [normalize_model(m) for m in openrouter_models]
-        print(f"   ✅ {len(normalized)} modelos coletados")
+        normalized_openrouter = [normalize_model(m) for m in openrouter_models]
+        print(f"   ✅ {len(normalized_openrouter)} modelos coletados")
     else:
         print("   ❌ Falha ao coletar OpenRouter")
-        normalized = []
+        normalized_openrouter = []
     
-    # 2. Coleta SWE-bench (placeholder - implementar scraping)
-    print("\n📡 2/4 Coletando dados do SWE-bench...")
-    print("   ⏳ Implementar scraping da leaderboard")
-    swebench_data = {}
+    # 2. Coleta Arena
+    print("\n📡 2/4 Coletando dados do Arena...")
+    arena_models = fetch_arena_leaderboard()
+    if arena_models:
+        normalized_arena = [normalize_arena_model(m) for m in arena_models]
+        print(f"   ✅ {len(normalized_arena)} modelos coletados")
+    else:
+        print("   ⚠️ Usando dados de fallback")
+        normalized_arena = []
     
-    # 3. Coleta Arena/LMSYS (placeholder - implementar)
-    print("\n📡 3/4 Coletando dados do Arena...")
-    print("   ⏳ Implementar coleta da leaderboard")
-    arena_data = {}
+    # 3. Coleta SWE-bench
+    print("\n📡 3/4 Coletando dados do SWE-bench...")
+    swebench_models = fetch_swebench_leaderboard()
+    if swebench_models:
+        normalized_swebench = [normalize_swebench_model(m) for m in swebench_models]
+        print(f"   ✅ {len(normalized_swebench)} modelos coletados")
+    else:
+        print("   ⚠️ Usando dados de fallback")
+        normalized_swebench = []
     
-    # 4. Coleta Artificial Analysis (placeholder - implementar)
+    # 4. Coleta Artificial Analysis
     print("\n📡 4/4 Coletando dados do Artificial Analysis...")
-    print("   ⏳ Implementar scraping ou vision analysis")
-    artificial_data = {}
+    artificial_models = fetch_artificial_leaderboard()
+    if artificial_models:
+        normalized_artificial = [normalize_artificial_model(m) for m in artificial_models]
+        print(f"   ✅ {len(normalized_artificial)} modelos coletados")
+    else:
+        print("   ⚠️ Usando dados de fallback")
+        normalized_artificial = []
     
     # 5. Compila dataset final
     print("\n📊 Compilando dataset final...")
@@ -56,12 +74,17 @@ def run_weekly_update():
         "updated_at": timestamp,
         "update_type": "weekly",
         "sources": {
-            "openrouter": {"models_count": len(normalized), "status": "ok"},
-            "swebench": {"status": "pending"},
-            "arena": {"status": "pending"},
-            "artificial_analysis": {"status": "pending"}
+            "openrouter": {"models_count": len(normalized_openrouter), "status": "ok"},
+            "arena": {"models_count": len(normalized_arena), "status": "ok"},
+            "swebench": {"models_count": len(normalized_swebench), "status": "ok"},
+            "artificial_analysis": {"models_count": len(normalized_artificial), "status": "ok"}
         },
-        "models": normalized
+        "models": normalized_openrouter,
+        "benchmarks": {
+            "arena": normalized_arena,
+            "swebench": normalized_swebench,
+            "artificial_analysis": normalized_artificial
+        }
     }
     
     # Salva dataset
@@ -73,13 +96,13 @@ def run_weekly_update():
         json.dump(dataset, f, indent=2, ensure_ascii=False)
     
     print(f"\n✅ Dataset salvo em: {output_file}")
-    print(f"   Total de modelos: {len(normalized)}")
+    print(f"   Total de modelos: {len(normalized_openrouter)}")
     print(f"   Timestamp: {timestamp}")
     
     # Gera resumo
     print("\n📈 Resumo de Preços (top 5 mais baratos):")
     sorted_by_price = sorted(
-        [m for m in normalized if m.get("pricing", {}).get("prompt", 0) > 0],
+        [m for m in normalized_openrouter if m.get("pricing", {}).get("prompt", 0) > 0],
         key=lambda x: x["pricing"]["prompt"]
     )[:5]
     
