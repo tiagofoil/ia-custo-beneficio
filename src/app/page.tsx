@@ -132,8 +132,8 @@ export default function Home() {
       <footer className="footer">
         <div className="container footer-content">
           <div className="footer-left">
-            <div className="footer-logo">IA</div>
-            <span className="footer-text">Custo Benefício · 2026</span>
+            <div className="footer-logo">V</div>
+            <span className="footer-text">Value · 2026</span>
           </div>
           <a 
             href="https://github.com/tiagofoil/ia-custo-beneficio" 

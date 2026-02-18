@@ -5,8 +5,8 @@ export function Navbar() {
     <nav className="nav">
       <div className="container nav-content">
         <a href="/" className="nav-logo">
-          <div className="nav-logo-icon">IA</div>
-          <span className="nav-logo-text">Custo Benefício</span>
+          <div className="nav-logo-icon">V</div>
+          <span className="nav-logo-text">Value</span>
         </a>
 
         <div className="nav-links">

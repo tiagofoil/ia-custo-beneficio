@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "IA Custo Benefício | Ranking de LLMs",
-  description: "Descubra os melhores modelos de IA com o melhor custo-benefício.",
+  title: "Value | Melhor Custo-Benefício em IA",
+  description: "Descubra os modelos de IA com melhor performance por dólar. Ranking atualizado de LLMs por custo-benefício.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
