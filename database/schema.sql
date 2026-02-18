@@ -119,6 +119,45 @@ WHERE is_active = TRUE
   AND (pricing_prompt * 1 + pricing_completion * 0.5) < 50
 ORDER BY cost_benefit_coding DESC NULLS LAST;
 
+-- Tabela de planos mensais (ChatGPT Plus, Anthropic Pro, etc.)
+CREATE TABLE IF NOT EXISTS value.monthly_plans (
+    id SERIAL PRIMARY KEY,
+    provider VARCHAR(100) NOT NULL,
+    plan_name VARCHAR(100) NOT NULL,
+    price_monthly DECIMAL(10, 2) NOT NULL,
+    price_annual DECIMAL(10, 2),
+    tokens_included INTEGER, -- NULL = unlimited
+    requests_per_day INTEGER,
+    features TEXT[], -- Array de features
+    url TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Índices para monthly_plans
+CREATE INDEX IF NOT EXISTS idx_monthly_plans_provider ON value.monthly_plans(provider);
+CREATE INDEX IF NOT EXISTS idx_monthly_plans_active ON value.monthly_plans(is_active);
+
+-- View para comparar monthly plans
+CREATE OR REPLACE VIEW value.monthly_plans_comparison AS
+SELECT 
+    provider,
+    plan_name,
+    price_monthly,
+    price_annual,
+    CASE 
+        WHEN price_annual IS NOT NULL THEN ROUND((1 - (price_annual/12)/price_monthly) * 100, 1)
+        ELSE NULL 
+    END as annual_discount_percent,
+    tokens_included,
+    requests_per_day,
+    features,
+    url
+FROM value.monthly_plans
+WHERE is_active = TRUE
+ORDER BY price_monthly ASC;
+
 -- Tabela para histórico de pesquisas do Free Tier Hunter
 CREATE TABLE IF NOT EXISTS value.free_tier_research (
     id SERIAL PRIMARY KEY,
