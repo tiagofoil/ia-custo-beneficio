@@ -1,0 +1,426 @@
+{
+  "updated_at": "2026-02-18T20:00:00Z",
+  "total_models": 19,
+  "models": [
+    {
+      "id": "groq/llama-3.2-1b",
+      "name": "Llama 3.2 1B",
+      "provider": "groq",
+      "context_length": 128000,
+      "pricing": {
+        "prompt": 0.0,
+        "completion": 0.0
+      },
+      "free_tier": {
+        "is_free": true,
+        "type": "api",
+        "provider": "Groq",
+        "limitations": "Rate limited",
+        "url": "https://groq.com"
+      },
+      "benchmarks": {
+        "arena_elo": 1050,
+        "swe_bench_full": 5.2,
+        "intelligence_score": 65
+      },
+      "cost_benefit_scores": {
+        "coding": 0.0,
+        "general": 0.0
+      }
+    },
+    {
+      "id": "google/gemini-1.5-flash-free",
+      "name": "Gemini 1.5 Flash",
+      "provider": "google",
+      "context_length": 1000000,
+      "pricing": {
+        "prompt": 0.0,
+        "completion": 0.0
+      },
+      "free_tier": {
+        "is_free": true,
+        "type": "api",
+        "provider": "Google AI Studio",
+        "limitations": "1,500 requests/day",
+        "url": "https://aistudio.google.com"
+      },
+      "benchmarks": {
+        "arena_elo": 1180,
+        "swe_bench_full": 18.5,
+        "intelligence_score": 78
+      },
+      "cost_benefit_scores": {
+        "coding": 0.0,
+        "general": 0.0
+      }
+    },
+    {
+      "id": "ollama/llama-3.2-3b",
+      "name": "Llama 3.2 3B",
+      "provider": "ollama",
+      "context_length": 128000,
+      "pricing": {
+        "prompt": 0.0,
+        "completion": 0.0
+      },
+      "free_tier": {
+        "is_free": true,
+        "type": "local",
+        "provider": "Ollama",
+        "limitations": "Runs on your hardware",
+        "url": "https://ollama.com/library/llama3.2",
+        "requirements": "8GB+ RAM recommended"
+      },
+      "benchmarks": {
+        "arena_elo": 1080,
+        "swe_bench_full": 8.0,
+        "intelligence_score": 70
+      },
+      "cost_benefit_scores": {
+        "coding": 0.0,
+        "general": 0.0
+      }
+    },
+    {
+      "id": "mistralai/mistral-7b-free",
+      "name": "Mistral 7B",
+      "provider": "mistralai",
+      "context_length": 32000,
+      "pricing": {
+        "prompt": 0.0,
+        "completion": 0.0
+      },
+      "free_tier": {
+        "is_free": true,
+        "type": "api",
+        "provider": "Mistral AI",
+        "limitations": "Experimental tier",
+        "url": "https://console.mistral.ai"
+      },
+      "benchmarks": {
+        "arena_elo": 1120,
+        "swe_bench_full": 12.0,
+        "intelligence_score": 72
+      },
+      "cost_benefit_scores": {
+        "coding": 0.0,
+        "general": 0.0
+      }
+    },
+    {
+      "id": "openai/gpt-4o-mini",
+      "name": "GPT-4o Mini",
+      "provider": "openai",
+      "context_length": 128000,
+      "pricing": {
+        "prompt": 0.15,
+        "completion": 0.6
+      },
+      "benchmarks": {
+        "arena_elo": 1185,
+        "swe_bench_full": 12.5,
+        "intelligence_score": 82
+      },
+      "cost_benefit_scores": {
+        "coding": 83.3,
+        "general": 546.7
+      }
+    },
+    {
+      "id": "openai/gpt-4o",
+      "name": "GPT-4o",
+      "provider": "openai",
+      "context_length": 128000,
+      "pricing": {
+        "prompt": 2.5,
+        "completion": 10.0
+      },
+      "benchmarks": {
+        "arena_elo": 1185,
+        "swe_bench_full": 16.0,
+        "intelligence_score": 88
+      },
+      "cost_benefit_scores": {
+        "coding": 6.4,
+        "general": 35.2
+      }
+    },
+    {
+      "id": "anthropic/claude-3-opus",
+      "name": "Claude 3 Opus",
+      "provider": "anthropic",
+      "context_length": 200000,
+      "pricing": {
+        "prompt": 15.0,
+        "completion": 75.0
+      },
+      "benchmarks": {
+        "arena_elo": 1389,
+        "swe_bench_full": 22.0,
+        "intelligence_score": 95
+      },
+      "cost_benefit_scores": {
+        "coding": 1.5,
+        "general": 6.3
+      }
+    },
+    {
+      "id": "anthropic/claude-3-sonnet",
+      "name": "Claude 3 Sonnet",
+      "provider": "anthropic",
+      "context_length": 200000,
+      "pricing": {
+        "prompt": 3.0,
+        "completion": 15.0
+      },
+      "benchmarks": {
+        "arena_elo": 1235,
+        "swe_bench_full": 27.0,
+        "intelligence_score": 86
+      },
+      "cost_benefit_scores": {
+        "coding": 9.0,
+        "general": 28.7
+      }
+    },
+    {
+      "id": "anthropic/claude-3-haiku",
+      "name": "Claude 3 Haiku",
+      "provider": "anthropic",
+      "context_length": 200000,
+      "pricing": {
+        "prompt": 0.25,
+        "completion": 1.25
+      },
+      "benchmarks": {
+        "arena_elo": 1160,
+        "swe_bench_full": 8.5,
+        "intelligence_score": 78
+      },
+      "cost_benefit_scores": {
+        "coding": 34.0,
+        "general": 312.0
+      }
+    },
+    {
+      "id": "google/gemini-2.5-pro",
+      "name": "Gemini 2.5 Pro",
+      "provider": "google",
+      "context_length": 1000000,
+      "pricing": {
+        "prompt": 1.25,
+        "completion": 5.0
+      },
+      "benchmarks": {
+        "arena_elo": 1220,
+        "swe_bench_full": 63.8,
+        "intelligence_score": 92
+      },
+      "cost_benefit_scores": {
+        "coding": 51.0,
+        "general": 73.6
+      }
+    },
+    {
+      "id": "google/gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "provider": "google",
+      "context_length": 1000000,
+      "pricing": {
+        "prompt": 0.15,
+        "completion": 0.6
+      },
+      "benchmarks": {
+        "arena_elo": 1265,
+        "swe_bench_full": null,
+        "intelligence_score": 85
+      },
+      "cost_benefit_scores": {
+        "coding": 0.0,
+        "general": 566.7
+      }
+    },
+    {
+      "id": "deepseek/deepseek-chat",
+      "name": "DeepSeek V3",
+      "provider": "deepseek",
+      "context_length": 64000,
+      "pricing": {
+        "prompt": 0.14,
+        "completion": 0.28
+      },
+      "benchmarks": {
+        "arena_elo": null,
+        "swe_bench_full": 42.0,
+        "intelligence_score": 85
+      },
+      "cost_benefit_scores": {
+        "coding": 300.0,
+        "general": 607.1
+      }
+    },
+    {
+      "id": "deepseek/deepseek-coder",
+      "name": "DeepSeek Coder",
+      "provider": "deepseek",
+      "context_length": 64000,
+      "pricing": {
+        "prompt": 0.14,
+        "completion": 0.28
+      },
+      "benchmarks": {
+        "arena_elo": null,
+        "swe_bench_full": 45.0,
+        "intelligence_score": 83
+      },
+      "cost_benefit_scores": {
+        "coding": 321.4,
+        "general": 592.9
+      }
+    },
+    {
+      "id": "moonshotai/kimi-k2.5",
+      "name": "Kimi K2.5",
+      "provider": "moonshotai",
+      "context_length": 256000,
+      "pricing": {
+        "prompt": 0.5,
+        "completion": 2.0
+      },
+      "benchmarks": {
+        "arena_elo": 1200,
+        "swe_bench_full": 64.5,
+        "intelligence_score": 84
+      },
+      "cost_benefit_scores": {
+        "coding": 129.0,
+        "general": 168.0
+      }
+    },
+    {
+      "id": "thudm/glm-5",
+      "name": "GLM-5",
+      "provider": "thudm",
+      "context_length": 128000,
+      "pricing": {
+        "prompt": 0.5,
+        "completion": 1.5
+      },
+      "benchmarks": {
+        "arena_elo": 1250,
+        "swe_bench_full": 77.8,
+        "intelligence_score": 83
+      },
+      "cost_benefit_scores": {
+        "coding": 155.6,
+        "general": 166.0
+      }
+    },
+    {
+      "id": "minimax/minimax-m2.5",
+      "name": "MiniMax M2.5",
+      "provider": "minimax",
+      "context_length": 100000,
+      "pricing": {
+        "prompt": 0.15,
+        "completion": 0.6
+      },
+      "benchmarks": {
+        "arena_elo": null,
+        "swe_bench_full": 80.2,
+        "intelligence_score": 81
+      },
+      "cost_benefit_scores": {
+        "coding": 534.7,
+        "general": 540.0
+      }
+    },
+    {
+      "id": "qwen/qwen3.5-plus",
+      "name": "Qwen 3.5 Plus",
+      "provider": "qwen",
+      "context_length": 1000000,
+      "pricing": {
+        "prompt": 0.4,
+        "completion": 2.4
+      },
+      "benchmarks": {
+        "arena_elo": 1150,
+        "swe_bench_full": null,
+        "intelligence_score": 80
+      },
+      "cost_benefit_scores": {
+        "coding": 0.0,
+        "general": 200.0
+      }
+    },
+    {
+      "id": "meta-llama/llama-3.3-70b",
+      "name": "Llama 3.3 70B",
+      "provider": "meta-llama",
+      "context_length": 128000,
+      "pricing": {
+        "prompt": 0.12,
+        "completion": 0.3
+      },
+      "benchmarks": {
+        "arena_elo": 1140,
+        "swe_bench_full": 35.0,
+        "intelligence_score": 75
+      },
+      "cost_benefit_scores": {
+        "coding": 291.7,
+        "general": 625.0
+      }
+    },
+    {
+      "id": "mistralai/mistral-large",
+      "name": "Mistral Large",
+      "provider": "mistralai",
+      "context_length": 128000,
+      "pricing": {
+        "prompt": 2.0,
+        "completion": 6.0
+      },
+      "benchmarks": {
+        "arena_elo": 1155,
+        "swe_bench_full": 38.0,
+        "intelligence_score": 79
+      },
+      "cost_benefit_scores": {
+        "coding": 19.0,
+        "general": 39.5
+      }
+    }
+  ],
+  "rankings": {
+    "by_price": [
+      {"rank": 1, "model_id": "groq/llama-3.2-1b", "price": 0.0},
+      {"rank": 2, "model_id": "google/gemini-1.5-flash-free", "price": 0.0},
+      {"rank": 3, "model_id": "ollama/llama-3.2-3b", "price": 0.0},
+      {"rank": 4, "model_id": "mistralai/mistral-7b-free", "price": 0.0},
+      {"rank": 5, "model_id": "meta-llama/llama-3.3-70b", "price": 0.12}
+    ],
+    "by_coding_cost_benefit": [
+      {"rank": 1, "model_id": "minimax/minimax-m2.5", "score": 534.7},
+      {"rank": 2, "model_id": "deepseek/deepseek-coder", "score": 321.4},
+      {"rank": 3, "model_id": "meta-llama/llama-3.3-70b", "score": 291.7},
+      {"rank": 4, "model_id": "thudm/glm-5", "score": 155.6},
+      {"rank": 5, "model_id": "moonshotai/kimi-k2.5", "score": 129.0}
+    ],
+    "by_general_cost_benefit": [
+      {"rank": 1, "model_id": "meta-llama/llama-3.3-70b", "score": 625.0},
+      {"rank": 2, "model_id": "deepseek/deepseek-chat", "score": 607.1},
+      {"rank": 3, "model_id": "deepseek/deepseek-coder", "score": 592.9},
+      {"rank": 4, "model_id": "google/gemini-2.5-flash", "score": 566.7},
+      {"rank": 5, "model_id": "minimax/minimax-m2.5", "score": 540.0}
+    ],
+    "by_context_window": [
+      {"rank": 1, "model_id": "google/gemini-2.5-pro", "context": 1000000},
+      {"rank": 2, "model_id": "google/gemini-2.5-flash", "context": 1000000},
+      {"rank": 3, "model_id": "google/gemini-1.5-flash-free", "context": 1000000},
+      {"rank": 4, "model_id": "qwen/qwen3.5-plus", "context": 1000000},
+      {"rank": 5, "model_id": "anthropic/claude-3-opus", "context": 200000}
+    ]
+  }
+}
