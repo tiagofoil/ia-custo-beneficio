@@ -1,23 +1,69 @@
+"use client";
+
 import { Navbar } from "@/components/navbar";
-import { Hero } from "@/components/hero";
 import { RankingTable } from "@/components/ranking-table";
+import { useI18n } from "@/lib/i18n";
 
 export default function Home() {
+  const { t } = useI18n();
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
       
-      <main style={{ flex: 1 }}>
-        <Hero />
-        
-        {/* Ranking Section */}
-        <section id="ranking" className="section">
+      <main style={{ flex: 1, paddingTop: 80 }}>
+        {/* Direct to Ranking with Value Prop */}
+        <section id="ranking" className="section" style={{ paddingTop: 40 }}>
           <div className="container">
-            <div className="section-header">
-              <div className="section-label">Ranking</div>
-              <h2 className="section-title">Melhor Custo-Benefício</h2>
-              <p className="section-subtitle">
-                Modelos ordenados pelo melhor desempenho por dólar gasto
+            {/* Value Proposition */}
+            <div style={{ 
+              textAlign: 'center', 
+              maxWidth: 700, 
+              margin: '0 auto 48px',
+            }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'rgba(0, 212, 255, 0.1)',
+                border: '1px solid rgba(0, 212, 255, 0.2)',
+                borderRadius: 100,
+                padding: '8px 16px',
+                marginBottom: 24,
+                fontSize: 14,
+                color: 'var(--accent)',
+              }}>
+                <span style={{
+                  width: 8,
+                  height: 8,
+                  background: 'var(--accent)',
+                  borderRadius: '50%',
+                  animation: 'pulse 2s infinite'
+                }} />
+                <style>{`
+                  @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.3; }
+                  }
+                `}</style>
+                {t.hero.badge}
+              </div>
+              
+              <h1 style={{ 
+                fontSize: 'clamp(32px, 5vw, 48px)', 
+                fontWeight: 800, 
+                marginBottom: 16,
+                lineHeight: 1.1 
+              }}>
+                {t.hero.title}
+              </h1>
+              
+              <p style={{ 
+                fontSize: 18, 
+                color: 'var(--text-secondary)', 
+                lineHeight: 1.6 
+              }}>
+                {t.hero.subtitle}
               </p>
             </div>
             
@@ -29,8 +75,8 @@ export default function Home() {
         <section id="metodologia" className="section" style={{ background: 'rgba(20, 20, 20, 0.5)' }}>
           <div className="container">
             <div className="section-header">
-              <div className="section-label">Metodologia</div>
-              <h2 className="section-title">Como Funciona</h2>
+              <div className="section-label">Methodology</div>
+              <h2 className="section-title">{t.methodology.title}</h2>
             </div>
             
             <div style={{ 
@@ -41,18 +87,18 @@ export default function Home() {
               {[
                 { 
                   n: "01", 
-                  t: "Coleta de Dados", 
-                  d: "Monitoramos preços em tempo real da OpenRouter e benchmarks oficiais como SWE-bench e Arena." 
+                  t: t.methodology.dataCollection, 
+                  d: t.methodology.dataCollectionDesc 
                 },
                 { 
                   n: "02", 
-                  t: "Cálculo Inteligente", 
-                  d: "Usamos a fórmula: Score = (Performance ÷ Preço) × 100. Quanto maior, melhor o custo-benefício." 
+                  t: t.methodology.smartCalc, 
+                  d: t.methodology.smartCalcDesc 
                 },
                 { 
                   n: "03", 
-                  t: "Atualização Semanal", 
-                  d: "Preços de LLMs mudam constantemente. Nossos dados são atualizados automaticamente toda semana." 
+                  t: t.methodology.weeklyUpdate, 
+                  d: t.methodology.weeklyUpdateDesc 
                 },
               ].map((item) => (
                 <div key={item.n} className="method-card">
@@ -81,8 +127,8 @@ export default function Home() {
         <section id="fontes" className="section">
           <div className="container">
             <div className="section-header">
-              <div className="section-label">Fontes</div>
-              <h2 className="section-title">Dados Confiáveis</h2>
+              <div className="section-label">Sources</div>
+              <h2 className="section-title">{t.sources.title}</h2>
             </div>
             
             <div style={{ 
@@ -91,10 +137,10 @@ export default function Home() {
               gap: 16 
             }}>
               {[
-                { n: "OpenRouter", d: "Preços em tempo real", u: "https://openrouter.ai" },
-                { n: "SWE-bench", d: "Benchmarks de código", u: "https://www.swebench.com" },
-                { n: "Arena", d: "Rankings ELO", u: "https://arena.ai" },
-                { n: "Artificial Analysis", d: "Métricas de performance", u: "https://artificialanalysis.ai" },
+                { n: "OpenRouter", d: t.sources.openrouter, u: "https://openrouter.ai" },
+                { n: "SWE-bench", d: t.sources.swebench, u: "https://www.swebench.com" },
+                { n: "Arena", d: t.sources.arena, u: "https://arena.ai" },
+                { n: "Artificial Analysis", d: t.sources.artificialAnalysis, u: "https://artificialanalysis.ai" },
               ].map((s) => (
                 <a
                   key={s.n}
@@ -133,7 +179,7 @@ export default function Home() {
         <div className="container footer-content">
           <div className="footer-left">
             <div className="footer-logo">V</div>
-            <span className="footer-text">Value · 2026</span>
+            <span className="footer-text">Value · {t.footer.year}</span>
           </div>
           <a 
             href="https://github.com/tiagofoil/ia-custo-beneficio" 

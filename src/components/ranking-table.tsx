@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 
 interface Model {
   id: string;
@@ -11,6 +12,7 @@ interface Model {
 }
 
 export function RankingTable() {
+  const { t } = useI18n();
   const [models, setModels] = useState<Model[]>([]);
   const [sortBy, setSortBy] = useState<"coding" | "general" | "price">("coding");
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export function RankingTable() {
               to { transform: rotate(360deg); }
             }
           `}</style>
-          <span style={{ color: 'var(--text-secondary)', fontSize: 16 }}>Carregando ranking...</span>
+          <span style={{ color: 'var(--text-secondary)', fontSize: 16 }}>{t.ranking.title}...</span>
         </div>
       </div>
     );
@@ -63,9 +65,9 @@ export function RankingTable() {
       {/* Filters */}
       <div className="filters">
         {[
-          { k: "coding", l: "Código" },
-          { k: "general", l: "Geral" },
-          { k: "price", l: "Preço" },
+          { k: "coding", l: t.ranking.filterCoding },
+          { k: "general", l: t.ranking.filterGeneral },
+          { k: "price", l: t.ranking.filterPrice },
         ].map((f) => (
           <button
             key={f.k}
@@ -82,11 +84,11 @@ export function RankingTable() {
         <table className="table">
           <thead>
             <tr>
-              <th style={{ width: 80 }}>Rank</th>
-              <th>Modelo</th>
-              <th style={{ textAlign: 'right', width: 120 }}>Input</th>
-              <th style={{ textAlign: 'right', width: 120 }}>Output</th>
-              <th style={{ textAlign: 'right', width: 200 }}>Score</th>
+              <th style={{ width: 80 }}>{t.ranking.rank}</th>
+              <th>{t.ranking.model}</th>
+              <th style={{ textAlign: 'right', width: 120 }}>{t.ranking.inputPrice}</th>
+              <th style={{ textAlign: 'right', width: 120 }}>{t.ranking.outputPrice}</th>
+              <th style={{ textAlign: 'right', width: 200 }}>{t.ranking.score}</th>
             </tr>
           </thead>
           <tbody>
@@ -123,14 +125,14 @@ export function RankingTable() {
                     <span className="font-mono" style={{ fontSize: 15 }}>
                       ${m.pricing.prompt.toFixed(2)}
                     </span>
-                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>/1M tokens</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>{t.ranking.per1MTokens}</div>
                   </td>
                   
                   <td style={{ textAlign: 'right' }}>
                     <span className="font-mono" style={{ fontSize: 15 }}>
                       ${m.pricing.completion.toFixed(2)}
                     </span>
-                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>/1M tokens</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>{t.ranking.per1MTokens}</div>
                   </td>
                   
                   <td>
@@ -182,7 +184,7 @@ export function RankingTable() {
           }
         `}</style>
         
-        <span>Dados atualizados automaticamente via OpenRouter</span>
+        <span>{t.ranking.updatedVia}</span>
       </div>
     </div>
   );
