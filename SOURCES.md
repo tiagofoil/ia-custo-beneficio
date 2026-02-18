@@ -79,30 +79,6 @@
 
 ---
 
-## 🔬 Research & Evaluation
-
-### 7. METR
-**URL:** https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/  
-**What:** Long-horizon task evaluation  
-**Key Metrics:**
-- Time to complete tasks
-- Autonomous capabilities
-- Safety evaluations
-
----
-
-## 💰 Our Site
-
-### 8. Value.ai-foil.com
-**URL:** https://value.ai-foil.com  
-**What:** Our cost-benefit ranking (this project)  
-**Focus:**
-- Price/performance for coding
-- Free tiers
-- Monthly plans
-
----
-
 ## 🎯 Deep Research Queries (for Perplexity)
 
 ### Query Template 1: Latest Models
@@ -161,7 +137,7 @@ Rank by:
 
 ### Low Priority (Monthly)
 7. Academic papers
-8. Research evaluations (METR)
+8. Research evaluations
 
 ---
 
