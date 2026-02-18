@@ -87,8 +87,10 @@ export function RankingTable() {
       return (b.benchmarks?.intelligence_score || 0) - (a.benchmarks?.intelligence_score || 0);
     }
     if (activeCategory === "unlimited") {
-      return (b.cost_benefit_scores?.coding || 0) - (a.cost_benefit_scores?.coding || 0);
+      // Sort by pure coding power (SWE-bench score) - no price consideration
+      return (b.benchmarks?.swe_bench_full || 0) - (a.benchmarks?.swe_bench_full || 0);
     }
+    // Other categories sort by cost-benefit
     return (b.cost_benefit_scores?.coding || 0) - (a.cost_benefit_scores?.coding || 0);
   });
 
@@ -188,14 +190,22 @@ export function RankingTable() {
               <th>{t.ranking.model}</th>
               <th style={{ textAlign: 'right', width: 120 }}>{t.ranking.inputPrice}</th>
               <th style={{ textAlign: 'right', width: 120 }}>{t.ranking.outputPrice}</th>
-              <th style={{ textAlign: 'right', width: 120 }}>{t.ranking.score}</th>
+              <th style={{ textAlign: 'right', width: 140 }}>
+                {activeCategory === 'unlimited' ? 'Coding Power' : t.ranking.score}
+              </th>
               <th style={{ width: 180 }}></th>
             </tr>
           </thead>
           <tbody>
             {filteredModels.map((m, i) => {
-              const score = m.cost_benefit_scores?.coding || 0;
-              const progressWidth = Math.min((score / 100) * 100, 100);
+              // For unlimited category, show SWE-bench score (pure coding power)
+              // For other categories, show cost-benefit score
+              const isUnlimited = activeCategory === 'unlimited';
+              const score = isUnlimited 
+                ? (m.benchmarks?.swe_bench_full || 0) 
+                : (m.cost_benefit_scores?.coding || 0);
+              const maxScore = isUnlimited ? 100 : 100; // SWE-bench max around 80-90%
+              const progressWidth = Math.min((score / maxScore) * 100, 100);
               const isTop3 = i < 3;
               const monthlyCost = calculateMonthlyCost(m.pricing);
               const isFree = m.free_tier?.is_free;
@@ -334,14 +344,22 @@ export function RankingTable() {
                       </div>
                       <span className="font-mono" style={{ 
                         color: 'var(--accent)', 
-                        width: 50, 
+                        width: 60, 
                         textAlign: 'right',
                         fontSize: 16,
                         fontWeight: 600
                       }}>
-                        {isFree ? 'N/A' : score.toFixed(1)}
+                        {isFree ? 'N/A' : score.toFixed(isUnlimited ? 0 : 1)}
+                        {isUnlimited && !isFree && (
+                          <span style={{ fontSize: 11, opacity: 0.7 }}>%</span>
+                        )}
                       </span>
                     </div>
+                    {isUnlimited && !isFree && m.benchmarks?.swe_bench_full && (
+                      <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4, textAlign: 'right' }}>
+                        SWE-bench
+                      </div>
+                    )}
                   </td>
 
                   <td>
