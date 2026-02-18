@@ -10,7 +10,6 @@ interface Model {
   provider: string;
   pricing: { prompt: number; completion: number };
   cost_benefit_scores: { coding: number; general: number };
-  estimated_monthly_cost?: number;
 }
 
 type PriceCategory = "free" | "under10" | "10to20" | "under50" | "unlimited";
@@ -19,8 +18,6 @@ interface PriceFilter {
   key: PriceCategory;
   label: string;
   description: string;
-  maxPrice?: number;
-  minPrice?: number;
 }
 
 export function RankingTable() {
@@ -41,35 +38,31 @@ export function RankingTable() {
     fetch('/data/models.json')
       .then(r => r.json())
       .then(data => {
-        // Add estimated monthly costs based on pricing
-        const modelsWithCost = (data.models || []).map((m: Model) => ({
-          ...m,
-          estimated_monthly_cost: estimateMonthlyCost(m.pricing)
-        }));
-        setModels(modelsWithCost);
+        setModels(data.models || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
 
-  // Estimate monthly cost based on prompt pricing (assuming ~500K tokens/month)
-  function estimateMonthlyCost(pricing: { prompt: number; completion: number }): number {
-    const avgPrice = (pricing.prompt + pricing.completion) / 2;
-    return (avgPrice * 500); // 500K tokens = 0.5M
-  }
+  // Calculate monthly cost based on pricing (assuming ~1M tokens input + 500K output per month)
+  const calculateMonthlyCost = (pricing: { prompt: number; completion: number }): number => {
+    const inputCost = pricing.prompt * 1; // 1M input tokens
+    const outputCost = pricing.completion * 0.5; // 500K output tokens
+    return inputCost + outputCost;
+  };
 
   // Filter and sort models based on active category
   const filteredModels = models.filter((m) => {
-    const cost = m.estimated_monthly_cost || 0;
+    const monthlyCost = calculateMonthlyCost(m.pricing);
     switch (activeCategory) {
       case "free":
-        return cost === 0;
+        return monthlyCost === 0;
       case "under10":
-        return cost > 0 && cost < 10;
+        return monthlyCost > 0 && monthlyCost < 10;
       case "10to20":
-        return cost >= 10 && cost <= 20;
+        return monthlyCost >= 10 && monthlyCost <= 20;
       case "under50":
-        return cost > 20 && cost < 50;
+        return monthlyCost > 20 && monthlyCost < 50;
       case "unlimited":
         return true; // All models, sorted by power
       default:
@@ -161,6 +154,16 @@ export function RankingTable() {
         ))}
       </div>
 
+      {/* Results count */}
+      <div style={{ 
+        textAlign: 'center', 
+        marginBottom: 24,
+        color: 'var(--text-secondary)',
+        fontSize: 14 
+      }}>
+        Showing {filteredModels.length} models
+      </div>
+
       {/* Table */}
       <div className="table-container">
         <table className="table">
@@ -177,8 +180,9 @@ export function RankingTable() {
           <tbody>
             {filteredModels.map((m, i) => {
               const score = m.cost_benefit_scores?.coding || 0;
-              const progressWidth = Math.min((score / 600) * 100, 100);
+              const progressWidth = Math.min((score / 100) * 100, 100);
               const isTop3 = i < 3;
+              const monthlyCost = calculateMonthlyCost(m.pricing);
               
               return (
                 <tr key={m.id}>
@@ -198,16 +202,14 @@ export function RankingTable() {
                     }}>
                       {m.provider}
                     </div>
-                    {m.estimated_monthly_cost !== undefined && (
-                      <div style={{
-                        fontSize: 12,
-                        color: 'var(--accent)',
-                        marginTop: 4,
-                        fontFamily: 'JetBrains Mono, monospace'
-                      }}>
-                        ~${m.estimated_monthly_cost.toFixed(2)}/mo
-                      </div>
-                    )}
+                    <div style={{
+                      fontSize: 12,
+                      color: 'var(--accent)',
+                      marginTop: 4,
+                      fontFamily: 'JetBrains Mono, monospace'
+                    }}>
+                      ~${monthlyCost.toFixed(2)}/mo est.
+                    </div>
                   </td>
                   
                   <td style={{ textAlign: 'right' }}>

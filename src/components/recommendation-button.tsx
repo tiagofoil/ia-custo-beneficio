@@ -14,24 +14,8 @@ export function RecommendationButton({ rank, modelName }: RecommendationButtonPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // For now just show coming soon message
     setSubmitted(true);
   };
-
-  const getRankStyle = () => {
-    switch (rank) {
-      case 1:
-        return { bg: "#FFD700", text: "#000", label: "🥇 #1" }; // Gold
-      case 2:
-        return { bg: "#C0C0C0", text: "#000", label: "🥈 #2" }; // Silver
-      case 3:
-        return { bg: "#CD7F32", text: "#FFF", label: "🥉 #3" }; // Bronze
-      default:
-        return { bg: "var(--accent)", text: "#000", label: `#${rank}` };
-    }
-  };
-
-  const rankStyle = getRankStyle();
 
   return (
     <>
@@ -62,7 +46,9 @@ export function RecommendationButton({ rank, modelName }: RecommendationButtonPr
           e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 212, 255, 0.3)";
         }}
       >
-        <span>⚡</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
         <span>Setup Guide</span>
       </button>
 
@@ -129,7 +115,9 @@ export function RecommendationButton({ rank, modelName }: RecommendationButtonPr
                       fontWeight: 700,
                     }}
                   >
-                    <span>👑</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
                     <span>PRO PLAN</span>
                   </div>
                 </div>
@@ -175,7 +163,7 @@ export function RecommendationButton({ rank, modelName }: RecommendationButtonPr
                       color: "var(--accent)",
                     }}
                   >
-                    📦 What's Included:
+                    What's Included:
                   </p>
                   <ul
                     style={{
@@ -203,7 +191,9 @@ export function RecommendationButton({ rank, modelName }: RecommendationButtonPr
                           marginBottom: 8,
                         }}
                       >
-                        <span style={{ color: "var(--accent)" }}>✓</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
                         {item}
                       </li>
                     ))}
@@ -281,7 +271,7 @@ export function RecommendationButton({ rank, modelName }: RecommendationButtonPr
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
-                    Get Early Access — Coming Soon
+                    Get Early Access
                   </button>
                 </form>
 
@@ -293,7 +283,7 @@ export function RecommendationButton({ rank, modelName }: RecommendationButtonPr
                     marginTop: 16,
                   }}
                 >
-                  🔔 We'll notify you when the payment system is ready
+                  Coming Soon — We'll notify you when ready
                 </p>
               </>
             ) : (
@@ -308,14 +298,15 @@ export function RecommendationButton({ rank, modelName }: RecommendationButtonPr
                     alignItems: "center",
                     justifyContent: "center",
                     margin: "0 auto 24px",
-                    fontSize: 40,
                   }}
                 >
-                  🎉
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
                 </div>
 
                 <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
-                  You're on the list!
+                  You're on the list
                 </h3>
 
                 <p style={{ color: "var(--text-secondary)", marginBottom: 24 }}>
