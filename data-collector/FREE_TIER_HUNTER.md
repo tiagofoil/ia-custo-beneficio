@@ -1,18 +1,18 @@
 # Free Tier Hunter
 
-Script Python para buscar LLM free tiers temporários e promoções na internet usando Perplexity Sonar Pro.
+Script Python para buscar LLM free tiers temporários e promoções na internet usando Perplexity Sonar Deep Research via OpenRouter.
 
 ## Como Usar
 
 ### 1. Configurar API Key
 
 ```bash
-export PERPLEXITY_API_KEY="pplx-..."
+export OPENROUTER_API_KEY="sk-or-v1-..."
 ```
 
 Ou passe via argumento:
 ```bash
-python3 src/collectors/free_tier_hunter.py --api-key "pplx-..."
+python3 src/collectors/free_tier_hunter.py --api-key "sk-or-v1-..."
 ```
 
 ### 2. Executar Busca

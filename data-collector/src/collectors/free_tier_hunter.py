@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Free Tier Hunter - Busca LLM free tiers temporários na internet
-Usa Perplexity Sonar Pro para encontrar promoções atuais
+Usa Perplexity Sonar via OpenRouter para encontrar promoções atuais
 """
 
 import json
@@ -11,9 +11,10 @@ from datetime import datetime
 from typing import Dict, List, Optional
 import requests
 
-# Config
-PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY", "")
-PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions"
+# Config - Usa OpenRouter para acessar Perplexity
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+PERPLEXITY_MODEL = "perplexity/sonar-deep-research"
 OUTPUT_FILE = "data/processed/free_tiers_temp.json"
 
 # Modelos para monitorar
@@ -67,11 +68,11 @@ PLATFORMS = [
 
 def search_free_tiers_with_perplexity() -> List[Dict]:
     """
-    Usa Perplexity Sonar Pro para buscar free tiers atuais.
+    Usa Perplexity Sonar via OpenRouter para buscar free tiers atuais.
     """
-    if not PERPLEXITY_API_KEY:
-        print("❌ PERPLEXITY_API_KEY não configurada")
-        print("💡 Configure a variável de ambiente ou passe via --api-key")
+    if not OPENROUTER_API_KEY:
+        print("❌ OPENROUTER_API_KEY não configurada")
+        print("💡 Configure a variável de ambiente OPENROUTER_API_KEY")
         return []
     
     free_tiers = []
@@ -100,13 +101,15 @@ Be specific and current. Focus on February 2026 active offers."""
     
     try:
         response = requests.post(
-            PERPLEXITY_API_URL,
+            OPENROUTER_API_URL,
             headers={
-                "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
-                "Content-Type": "application/json"
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://value.ai-foil.com",
+                "X-Title": "Free Tier Hunter"
             },
             json={
-                "model": "sonar-pro",
+                "model": PERPLEXITY_MODEL,
                 "messages": [
                     {
                         "role": "system",
@@ -120,7 +123,7 @@ Be specific and current. Focus on February 2026 active offers."""
                 "max_tokens": 2000,
                 "temperature": 0.1
             },
-            timeout=60
+            timeout=120  # Perplexity deep research pode demorar mais
         )
         
         response.raise_for_status()
@@ -128,28 +131,30 @@ Be specific and current. Focus on February 2026 active offers."""
         
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
         
-        print(f"✅ Perplexity respondeu ({len(content)} chars)")
+        print(f"✅ Perplexity via OpenRouter respondeu ({len(content)} chars)")
         
         # Parse a resposta e extrair free tiers
-        # Aqui simplificamos - na prática, seria melhor usar structured output
         free_tiers.append({
-            "source": "perplexity_search",
+            "source": "perplexity_sonar_deep_research",
             "query_date": datetime.utcnow().isoformat() + "Z",
             "raw_content": content,
-            "parsed": False  # Marca para processamento manual posterior
+            "parsed": False
         })
         
     except Exception as e:
-        print(f"❌ Erro na API Perplexity: {e}")
+        print(f"❌ Erro na API OpenRouter: {e}")
+        if hasattr(e, 'response') and e.response:
+            print(f"   Status: {e.response.status_code}")
+            print(f"   Response: {e.response.text[:200]}")
     
     return free_tiers
 
 
 def search_specific_platform_promos() -> List[Dict]:
     """
-    Busca promoções específicas por plataforma.
+    Busca promoções específicas por plataforma via OpenRouter.
     """
-    if not PERPLEXITY_API_KEY:
+    if not OPENROUTER_API_KEY:
         return []
     
     promotions = []
@@ -157,7 +162,7 @@ def search_specific_platform_promos() -> List[Dict]:
     # Busca por plataforma específica conhecida
     platforms_to_check = [
         "Opencode",
-        "Cursor", 
+        "Cursor",
         "Windsurf",
         "Zed IDE",
         "GitHub Copilot free",
@@ -169,13 +174,15 @@ def search_specific_platform_promos() -> List[Dict]:
         
         try:
             response = requests.post(
-                PERPLEXITY_API_URL,
+                OPENROUTER_API_URL,
                 headers={
-                    "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
-                    "Content-Type": "application/json"
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://value.ai-foil.com",
+                    "X-Title": "Free Tier Hunter"
                 },
                 json={
-                    "model": "sonar-pro",
+                    "model": PERPLEXITY_MODEL,
                     "messages": [
                         {
                             "role": "user",
@@ -185,7 +192,7 @@ def search_specific_platform_promos() -> List[Dict]:
                     "max_tokens": 1000,
                     "temperature": 0.1
                 },
-                timeout=60
+                timeout=120
             )
             
             if response.status_code == 200:
@@ -212,7 +219,7 @@ def save_results(free_tiers: List[Dict], promotions: List[Dict]):
     """
     result = {
         "updated_at": datetime.utcnow().isoformat() + "Z",
-        "source": "perplexity_sonar_pro",
+        "source": "perplexity_sonar_deep_research_via_openrouter",
         "search_summary": {
             "models_checked": len(TARGET_MODELS),
             "platforms_checked": len(PLATFORMS),
@@ -268,8 +275,8 @@ def generate_frontend_json():
 def main():
     import argparse
     
-    parser = argparse.ArgumentParser(description="Busca LLM free tiers na internet")
-    parser.add_argument("--api-key", help="Perplexity API Key")
+    parser = argparse.ArgumentParser(description="Busca LLM free tiers na internet via OpenRouter")
+    parser.add_argument("--api-key", help="OpenRouter API Key")
     parser.add_argument("--quick", action="store_true", help="Busca rápida (só geral)")
     parser.add_argument("--output", default=OUTPUT_FILE, help="Arquivo de saída")
     
@@ -277,10 +284,10 @@ def main():
     
     # Seta API key
     if args.api_key:
-        os.environ["PERPLEXITY_API_KEY"] = args.api_key
+        os.environ["OPENROUTER_API_KEY"] = args.api_key
     
     print("=" * 60)
-    print("🔍 Free Tier Hunter - Perplexity Sonar Pro")
+    print("🔍 Free Tier Hunter - Perplexity Sonar via OpenRouter")
     print("=" * 60)
     print()
     
