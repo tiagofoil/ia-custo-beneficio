@@ -25,6 +25,8 @@ interface Model {
     intelligence_score?: number;
   };
   free_tier?: FreeTier;
+  rank?: number;
+  monthly_cost?: number;
 }
 
 type PriceCategory = "free" | "under10" | "10to20" | "under50" | "unlimited";
@@ -50,54 +52,18 @@ export function RankingTable() {
   ];
 
   useEffect(() => {
-    fetch('/data/models.json')
+    setLoading(true);
+    // Busca do banco via API - já vem filtrado e ordenado
+    fetch(`/api/models?category=${activeCategory}`)
       .then(r => r.json())
       .then(data => {
         setModels(data.models || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [activeCategory]);
 
-  // Calculate monthly cost based on pricing (assuming ~1M tokens input + 500K output per month)
-  const calculateMonthlyCost = (pricing: { prompt: number; completion: number }): number => {
-    const inputCost = pricing.prompt * 1; // 1M input tokens
-    const outputCost = pricing.completion * 0.5; // 500K output tokens
-    return inputCost + outputCost;
-  };
-
-  // Filter and sort models based on active category
-  const filteredModels = models.filter((m) => {
-    // If has free_tier and is_free, show in "free" category
-    if (activeCategory === "free") {
-      return m.free_tier?.is_free === true;
-    }
-    
-    const monthlyCost = calculateMonthlyCost(m.pricing);
-    switch (activeCategory) {
-      case "under10":
-        return monthlyCost > 0 && monthlyCost < 10;
-      case "10to20":
-        return monthlyCost >= 10 && monthlyCost <= 20;
-      case "under50":
-        return monthlyCost > 20 && monthlyCost < 50;
-      case "unlimited":
-        return true;
-      default:
-        return true;
-    }
-  }).sort((a, b) => {
-    if (activeCategory === "free") {
-      // Sort free models by intelligence score
-      return (b.benchmarks?.intelligence_score || 0) - (a.benchmarks?.intelligence_score || 0);
-    }
-    if (activeCategory === "unlimited") {
-      // Sort by pure coding power (SWE-bench score) - no price consideration
-      return (b.benchmarks?.swe_bench_full || 0) - (a.benchmarks?.swe_bench_full || 0);
-    }
-    // Other categories sort by cost-benefit
-    return (b.cost_benefit_scores?.coding || 0) - (a.cost_benefit_scores?.coding || 0);
-  });
+  const isUnlimited = activeCategory === 'unlimited';
 
   if (loading) {
     return (
@@ -111,7 +77,7 @@ export function RankingTable() {
             animation: 'spin 1s linear infinite'
           }} />
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          <span style={{ color: 'var(--text-secondary)', fontSize: 16 }}>{t.ranking.title}...</span>
+          <span style={{ color: 'var(--text-secondary)', fontSize: 16 }}>Loading...</span>
         </div>
       </div>
     );
@@ -183,7 +149,7 @@ export function RankingTable() {
         color: 'var(--text-secondary)',
         fontSize: 14 
       }}>
-        Showing {filteredModels.length} models
+        Showing {models.length} models
       </div>
 
       {/* Table */}
@@ -196,23 +162,19 @@ export function RankingTable() {
               <th style={{ textAlign: 'right', width: 120 }}>{t.ranking.inputPrice}</th>
               <th style={{ textAlign: 'right', width: 120 }}>{t.ranking.outputPrice}</th>
               <th style={{ textAlign: 'right', width: 140 }}>
-                {activeCategory === 'unlimited' ? 'Coding Power' : t.ranking.score}
+                {isUnlimited ? 'Coding Power' : t.ranking.score}
               </th>
               <th style={{ width: 180 }}></th>
             </tr>
           </thead>
           <tbody>
-            {filteredModels.map((m, i) => {
-              // For unlimited category, show SWE-bench score (pure coding power)
-              // For other categories, show cost-benefit score
-              const isUnlimited = activeCategory === 'unlimited';
+            {models.map((m, i) => {
               const score = isUnlimited 
                 ? (m.benchmarks?.swe_bench_full || 0) 
                 : (m.cost_benefit_scores?.coding || 0);
-              const maxScore = isUnlimited ? 100 : 100; // SWE-bench max around 80-90%
+              const maxScore = isUnlimited ? 100 : 100;
               const progressWidth = Math.min((score / maxScore) * 100, 100);
               const isTop3 = i < 3;
-              const monthlyCost = calculateMonthlyCost(m.pricing);
               const isFree = m.free_tier?.is_free;
               const isLocal = m.free_tier?.type === "local";
               
@@ -313,14 +275,14 @@ export function RankingTable() {
                       </>
                     )}
                     
-                    {!isFree && monthlyCost > 0 && (
+                    {!isFree && m.monthly_cost && m.monthly_cost > 0 && (
                       <div style={{
                         fontSize: 12,
                         color: 'var(--accent)',
                         marginTop: 4,
                         fontFamily: 'JetBrains Mono, monospace'
                       }}>
-                        ~${monthlyCost.toFixed(2)}/mo est.
+                        ~${m.monthly_cost.toFixed(2)}/mo est.
                       </div>
                     )}
                   </td>
