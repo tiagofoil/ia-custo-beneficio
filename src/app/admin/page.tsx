@@ -50,7 +50,7 @@ export default function AdminPage() {
   });
 
   const login = () => {
-    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
+    if (password === process.env.LLM_CREATE_ADMIN_PASS) {
       setIsAuthenticated(true);
       fetchModels();
     } else {
