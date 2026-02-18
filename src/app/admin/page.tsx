@@ -221,7 +221,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      <!-- Add Model Form -->
+      {/* Add Model Form */}
       <div style={{ 
         background: "rgba(255,255,255,0.05)",
         padding: 24,
@@ -293,7 +293,7 @@ export default function AdminPage() {
             />
           </div>
           
-          <!-- Free Tier Section -->
+          {/* Free Tier Section */}
           <div style={{ marginTop: 24, padding: 16, background: "rgba(0,212,255,0.05)", borderRadius: 8 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <input
@@ -367,7 +367,7 @@ export default function AdminPage() {
         </form>
       </div>
 
-      <!-- Models List -->
+      {/* Models List */}
       <h2 style={{ marginBottom: 16 }}>Existing Models ({models.length})</h2>
       
       {loading ? (
