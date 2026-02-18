@@ -19,6 +19,11 @@ interface Model {
   provider: string;
   pricing: { prompt: number; completion: number };
   cost_benefit_scores: { coding: number; general: number };
+  benchmarks?: {
+    arena_elo?: number;
+    swe_bench_full?: number;
+    intelligence_score?: number;
+  };
   free_tier?: FreeTier;
 }
 
