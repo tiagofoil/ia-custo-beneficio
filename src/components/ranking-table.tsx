@@ -4,12 +4,22 @@ import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { RecommendationButton } from "./recommendation-button";
 
+interface FreeTier {
+  is_free: boolean;
+  type: "local" | "api";
+  provider: string;
+  limitations?: string;
+  url?: string;
+  requirements?: string;
+}
+
 interface Model {
   id: string;
   name: string;
   provider: string;
   pricing: { prompt: number; completion: number };
   cost_benefit_scores: { coding: number; general: number };
+  free_tier?: FreeTier;
 }
 
 type PriceCategory = "free" | "under10" | "10to20" | "under50" | "unlimited";
@@ -53,10 +63,13 @@ export function RankingTable() {
 
   // Filter and sort models based on active category
   const filteredModels = models.filter((m) => {
+    // If has free_tier and is_free, show in "free" category
+    if (activeCategory === "free") {
+      return m.free_tier?.is_free === true;
+    }
+    
     const monthlyCost = calculateMonthlyCost(m.pricing);
     switch (activeCategory) {
-      case "free":
-        return monthlyCost === 0;
       case "under10":
         return monthlyCost > 0 && monthlyCost < 10;
       case "10to20":
@@ -64,16 +77,18 @@ export function RankingTable() {
       case "under50":
         return monthlyCost > 20 && monthlyCost < 50;
       case "unlimited":
-        return true; // All models, sorted by power
+        return true;
       default:
         return true;
     }
   }).sort((a, b) => {
+    if (activeCategory === "free") {
+      // Sort free models by intelligence score
+      return (b.benchmarks?.intelligence_score || 0) - (a.benchmarks?.intelligence_score || 0);
+    }
     if (activeCategory === "unlimited") {
-      // Sort by coding score (power) for unlimited category
       return (b.cost_benefit_scores?.coding || 0) - (a.cost_benefit_scores?.coding || 0);
     }
-    // Sort by cost-benefit score for other categories
     return (b.cost_benefit_scores?.coding || 0) - (a.cost_benefit_scores?.coding || 0);
   });
 
@@ -183,6 +198,8 @@ export function RankingTable() {
               const progressWidth = Math.min((score / 100) * 100, 100);
               const isTop3 = i < 3;
               const monthlyCost = calculateMonthlyCost(m.pricing);
+              const isFree = m.free_tier?.is_free;
+              const isLocal = m.free_tier?.type === "local";
               
               return (
                 <tr key={m.id}>
@@ -193,7 +210,46 @@ export function RankingTable() {
                   </td>
                   
                   <td>
-                    <div style={{ fontWeight: 600, fontSize: 17 }}>{m.name}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 600, fontSize: 17 }}>{m.name}</span>
+                      
+                      {isFree && (
+                        <span
+                          style={{
+                            background: isLocal ? '#10B981' : '#00D4FF',
+                            color: '#000',
+                            padding: '2px 8px',
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            fontFamily: 'JetBrains Mono, monospace',
+                            textTransform: 'uppercase',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}
+                        >
+                          {isLocal ? (
+                            <>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <rect x="2" y="3" width="20" height="14" rx="2" />
+                                <line x1="8" y1="21" x2="16" y2="21" />
+                                <line x1="12" y1="17" x2="12" y2="21" />
+                              </svg>
+                              LOCAL
+                            </>
+                          ) : (
+                            <>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              FREE
+                            </>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    
                     <div className="font-mono" style={{ 
                       fontSize: 13, 
                       color: 'var(--text-dim)',
@@ -202,14 +258,56 @@ export function RankingTable() {
                     }}>
                       {m.provider}
                     </div>
-                    <div style={{
-                      fontSize: 12,
-                      color: 'var(--accent)',
-                      marginTop: 4,
-                      fontFamily: 'JetBrains Mono, monospace'
-                    }}>
-                      ~${monthlyCost.toFixed(2)}/mo est.
-                    </div>
+                    
+                    {isFree && m.free_tier && (
+                      <>
+                        <div style={{
+                          fontSize: 11,
+                          color: isLocal ? '#10B981' : 'var(--accent)',
+                          marginTop: 4,
+                          fontFamily: 'JetBrains Mono, monospace'
+                        }}>
+                          {isLocal ? (
+                            <span>Runs locally • {m.free_tier.requirements}</span>
+                          ) : (
+                            <span>Free tier • {m.free_tier.provider} • {m.free_tier.limitations}</span>
+                          )}
+                        </div>
+                        {m.free_tier.url && (
+                          <a 
+                            href={m.free_tier.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: 11,
+                              color: 'var(--accent)',
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              marginTop: 4,
+                            }}
+                          >
+                            Get free access 
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M7 17L17 7" />
+                              <polyline points="7 7 17 7 17 17" />
+                            </svg>
+                          </a>
+                        )}
+                      </>
+                    )}
+                    
+                    {!isFree && monthlyCost > 0 && (
+                      <div style={{
+                        fontSize: 12,
+                        color: 'var(--accent)',
+                        marginTop: 4,
+                        fontFamily: 'JetBrains Mono, monospace'
+                      }}>
+                        ~${monthlyCost.toFixed(2)}/mo est.
+                      </div>
+                    )}
                   </td>
                   
                   <td style={{ textAlign: 'right' }}>
@@ -241,14 +339,42 @@ export function RankingTable() {
                         fontSize: 16,
                         fontWeight: 600
                       }}>
-                        {score.toFixed(1)}
+                        {isFree ? 'N/A' : score.toFixed(1)}
                       </span>
                     </div>
                   </td>
 
                   <td>
-                    {isTop3 && (
+                    {isTop3 && !isFree && (
                       <RecommendationButton rank={i + 1} modelName={m.name} />
+                    )}
+                    {isFree && (
+                      <a
+                        href={m.free_tier?.url || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '10px 16px',
+                          background: isLocal ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0, 212, 255, 0.2)',
+                          color: isLocal ? '#10B981' : 'var(--accent)',
+                          border: `1px solid ${isLocal ? 'rgba(16, 185, 129, 0.4)' : 'rgba(0, 212, 255, 0.4)'}`,
+                          borderRadius: 8,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                        </svg>
+                        {isLocal ? 'Install' : 'Try Free'}
+                      </a>
                     )}
                   </td>
                 </tr>
