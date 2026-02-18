@@ -7,9 +7,10 @@ Usa Perplexity Sonar via OpenRouter para encontrar promoções atuais
 import json
 import os
 import sys
+import urllib.request
+import urllib.error
 from datetime import datetime
 from typing import Dict, List, Optional
-import requests
 
 # Config - Usa OpenRouter para acessar Perplexity
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
@@ -100,52 +101,52 @@ For each free tier found, provide:
 Be specific and current. Focus on February 2026 active offers."""
     
     try:
-        response = requests.post(
+        payload = {
+            "model": PERPLEXITY_MODEL,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a research assistant specialized in finding AI/LLM free tiers and promotions. Be thorough, current, and provide actionable information."
+                },
+                {
+                    "role": "user",
+                    "content": query
+                }
+            ],
+            "max_tokens": 2000,
+            "temperature": 0.1
+        }
+        
+        req = urllib.request.Request(
             OPENROUTER_API_URL,
+            data=json.dumps(payload).encode('utf-8'),
             headers={
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": "https://value.ai-foil.com",
                 "X-Title": "Free Tier Hunter"
             },
-            json={
-                "model": PERPLEXITY_MODEL,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a research assistant specialized in finding AI/LLM free tiers and promotions. Be thorough, current, and provide actionable information."
-                    },
-                    {
-                        "role": "user",
-                        "content": query
-                    }
-                ],
-                "max_tokens": 2000,
-                "temperature": 0.1
-            },
-            timeout=120  # Perplexity deep research pode demorar mais
+            method='POST'
         )
         
-        response.raise_for_status()
-        data = response.json()
+        with urllib.request.urlopen(req, timeout=120) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            
+            print(f"✅ Perplexity via OpenRouter respondeu ({len(content)} chars)")
+            
+            free_tiers.append({
+                "source": "perplexity_sonar_deep_research",
+                "query_date": datetime.utcnow().isoformat() + "Z",
+                "raw_content": content,
+                "parsed": False
+            })
         
-        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-        
-        print(f"✅ Perplexity via OpenRouter respondeu ({len(content)} chars)")
-        
-        # Parse a resposta e extrair free tiers
-        free_tiers.append({
-            "source": "perplexity_sonar_deep_research",
-            "query_date": datetime.utcnow().isoformat() + "Z",
-            "raw_content": content,
-            "parsed": False
-        })
-        
+    except urllib.error.HTTPError as e:
+        print(f"❌ Erro na API OpenRouter: HTTP {e.code}")
+        print(f"   Response: {e.read().decode('utf-8')[:200]}")
     except Exception as e:
         print(f"❌ Erro na API OpenRouter: {e}")
-        if hasattr(e, 'response') and e.response:
-            print(f"   Status: {e.response.status_code}")
-            print(f"   Response: {e.response.text[:200]}")
     
     return free_tiers
 
@@ -173,30 +174,32 @@ def search_specific_platform_promos() -> List[Dict]:
         query = f"What free LLM models or free tiers does {platform} offer in February 2026? Any promotions or temporary free access?"
         
         try:
-            response = requests.post(
+            payload = {
+                "model": PERPLEXITY_MODEL,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": query
+                    }
+                ],
+                "max_tokens": 1000,
+                "temperature": 0.1
+            }
+            
+            req = urllib.request.Request(
                 OPENROUTER_API_URL,
+                data=json.dumps(payload).encode('utf-8'),
                 headers={
                     "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                     "Content-Type": "application/json",
                     "HTTP-Referer": "https://value.ai-foil.com",
                     "X-Title": "Free Tier Hunter"
                 },
-                json={
-                    "model": PERPLEXITY_MODEL,
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": query
-                        }
-                    ],
-                    "max_tokens": 1000,
-                    "temperature": 0.1
-                },
-                timeout=120
+                method='POST'
             )
             
-            if response.status_code == 200:
-                data = response.json()
+            with urllib.request.urlopen(req, timeout=120) as response:
+                data = json.loads(response.read().decode('utf-8'))
                 content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
                 
                 promotions.append({
@@ -213,7 +216,7 @@ def search_specific_platform_promos() -> List[Dict]:
     return promotions
 
 
-def save_results(free_tiers: List[Dict], promotions: List[Dict]):
+def save_results(free_tiers: List[Dict], promotions: List[Dict], output_file: str):
     """
     Salva resultados em JSON.
     """
@@ -233,17 +236,17 @@ def save_results(free_tiers: List[Dict], promotions: List[Dict]):
     }
     
     # Cria diretório se não existir
-    os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
     
-    print(f"\n💾 Resultados salvos em: {OUTPUT_FILE}")
+    print(f"\n💾 Resultados salvos em: {output_file}")
     print(f"📊 {len(free_tiers)} free tiers gerais")
     print(f"📊 {len(promotions)} promoções por plataforma")
 
 
-def generate_frontend_json():
+def generate_frontend_json(output_file: str):
     """
     Gera um JSON processado pronto para o frontend consumir.
     """
@@ -255,8 +258,8 @@ def generate_frontend_json():
     }
     
     # Carrega dados brutos se existirem
-    if os.path.exists(OUTPUT_FILE):
-        with open(OUTPUT_FILE, "r") as f:
+    if os.path.exists(output_file):
+        with open(output_file, "r") as f:
             raw_data = json.load(f)
         
         # Aqui faria o parsing inteligente do conteúdo
@@ -301,12 +304,10 @@ def main():
         promotions = search_specific_platform_promos()
     
     # Salva resultados
-    global OUTPUT_FILE
-    OUTPUT_FILE = args.output
-    save_results(free_tiers, promotions)
+    save_results(free_tiers, promotions, args.output)
     
     # Gera frontend JSON
-    generate_frontend_json()
+    generate_frontend_json(args.output)
     
     print("\n✅ Busca completa!")
     print("⚠️  IMPORTANTE: Revise os resultados manualmente antes de publicar")
