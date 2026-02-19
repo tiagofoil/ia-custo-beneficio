@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { query } from '@/lib/db';
 
-// DADOS ESTÁTICOS - 24 LLMs com preços reais do OpenRouter
-const LLMS = [
+// DADOS DE BACKUP - se o banco falhar, usa estes
+const FALLBACK_LLMS = [
   { id: 'openai/gpt-5', name: 'GPT-5', provider: 'OpenAI', context_window: 400000, price_input: 1.25, price_output: 10.00 },
   { id: 'openai/gpt-5.1', name: 'GPT-5.1', provider: 'OpenAI', context_window: 400000, price_input: 1.25, price_output: 10.00 },
   { id: 'openai/gpt-5.2', name: 'GPT-5.2', provider: 'OpenAI', context_window: 400000, price_input: 1.75, price_output: 14.00 },
@@ -28,14 +29,12 @@ const LLMS = [
   { id: 'minimax/minimax-m2.5', name: 'MiniMax M2.5', provider: 'MiniMax', context_window: 196608, price_input: 0.30, price_output: 1.10 },
 ];
 
-// Calcular score de value (mais barato = maior score)
 function calculateValueScore(priceIn: number, priceOut: number): number {
   const monthly = priceIn * 1.0 + priceOut * 0.5;
   return monthly > 0 ? 1000.0 / monthly : 0;
 }
 
-// Transformar para formato do frontend
-function transformModel(llm: typeof LLMS[0], rank: number) {
+function transformModel(llm: typeof FALLBACK_LLMS[0], rank: number) {
   const valueScore = calculateValueScore(llm.price_input, llm.price_output);
   const monthlyCost = llm.price_input * 1.0 + llm.price_output * 0.5;
   
@@ -62,6 +61,60 @@ function transformModel(llm: typeof LLMS[0], rank: number) {
   };
 }
 
+function getFallbackModels(category: string) {
+  let filtered = [...FALLBACK_LLMS];
+  
+  switch (category) {
+    case 'free':
+      filtered = filtered.filter(m => m.price_input === 0 && m.price_output === 0);
+      break;
+    case 'under10':
+      filtered = filtered.filter(m => {
+        const cost = m.price_input * 1.0 + m.price_output * 0.5;
+        return cost > 0 && cost < 10;
+      });
+      filtered.sort((a, b) => {
+        const scoreA = calculateValueScore(a.price_input, a.price_output);
+        const scoreB = calculateValueScore(b.price_input, b.price_output);
+        return scoreB - scoreA;
+      });
+      break;
+    case '10to20':
+      filtered = filtered.filter(m => {
+        const cost = m.price_input * 1.0 + m.price_output * 0.5;
+        return cost >= 10 && cost <= 20;
+      });
+      filtered.sort((a, b) => {
+        const scoreA = calculateValueScore(a.price_input, a.price_output);
+        const scoreB = calculateValueScore(b.price_input, b.price_output);
+        return scoreB - scoreA;
+      });
+      break;
+    case 'under50':
+      filtered = filtered.filter(m => {
+        const cost = m.price_input * 1.0 + m.price_output * 0.5;
+        return cost > 20 && cost < 50;
+      });
+      filtered.sort((a, b) => {
+        const scoreA = calculateValueScore(a.price_input, a.price_output);
+        const scoreB = calculateValueScore(b.price_input, b.price_output);
+        return scoreB - scoreA;
+      });
+      break;
+    case 'unlimited':
+      filtered.sort((a, b) => b.context_window - a.context_window);
+      break;
+    default:
+      filtered.sort((a, b) => {
+        const scoreA = calculateValueScore(a.price_input, a.price_output);
+        const scoreB = calculateValueScore(b.price_input, b.price_output);
+        return scoreB - scoreA;
+      });
+  }
+  
+  return filtered.map((m, i) => transformModel(m, i + 1));
+}
+
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
@@ -69,64 +122,73 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category') || 'under10';
     
-    let filtered = [...LLMS];
-    
-    // Filtrar por categoria
-    switch (category) {
-      case 'free':
-        filtered = filtered.filter(m => m.price_input === 0 && m.price_output === 0);
-        break;
-      case 'under10':
-        filtered = filtered.filter(m => {
-          const cost = m.price_input * 1.0 + m.price_output * 0.5;
-          return cost > 0 && cost < 10;
+    // TENTAR BUSCAR DO BANCO PRIMEIRO
+    try {
+      let sql = '';
+      
+      switch (category) {
+        case 'free':
+          sql = 'SELECT * FROM value.v_rank_free';
+          break;
+        case 'under10':
+          sql = 'SELECT * FROM value.v_rank_under_10';
+          break;
+        case '10to20':
+          sql = 'SELECT * FROM value.v_rank_10_to_20';
+          break;
+        case 'under50':
+          sql = 'SELECT * FROM value.v_rank_under_50';
+          break;
+        case 'unlimited':
+          sql = 'SELECT * FROM value.v_rank_unlimited';
+          break;
+        default:
+          sql = 'SELECT * FROM value.v_models_basic ORDER BY basic_value_score DESC';
+      }
+      
+      const result = await query(sql);
+      
+      if (result.rows && result.rows.length > 0) {
+        const models = result.rows.map(row => ({
+          id: row.id,
+          name: row.name,
+          provider: row.provider,
+          context_length: row.context_window,
+          pricing: {
+            prompt: parseFloat(row.price_input),
+            completion: parseFloat(row.price_output),
+          },
+          cost_benefit_scores: {
+            coding: parseFloat(row.basic_value_score) || 0,
+            general: parseFloat(row.basic_value_score) || 0,
+          },
+          benchmarks: {
+            arena_elo: null,
+            swe_bench_full: null,
+            intelligence_score: null,
+          },
+          rank: row.rank,
+          monthly_cost: parseFloat(row.estimated_monthly_cost),
+        }));
+        
+        return NextResponse.json({ 
+          models,
+          total: models.length,
+          source: 'database',
+          updated_at: new Date().toISOString(),
         });
-        // Ordenar por value (mais barato primeiro)
-        filtered.sort((a, b) => {
-          const scoreA = calculateValueScore(a.price_input, a.price_output);
-          const scoreB = calculateValueScore(b.price_input, b.price_output);
-          return scoreB - scoreA;
-        });
-        break;
-      case '10to20':
-        filtered = filtered.filter(m => {
-          const cost = m.price_input * 1.0 + m.price_output * 0.5;
-          return cost >= 10 && cost <= 20;
-        });
-        filtered.sort((a, b) => {
-          const scoreA = calculateValueScore(a.price_input, a.price_output);
-          const scoreB = calculateValueScore(b.price_input, b.price_output);
-          return scoreB - scoreA;
-        });
-        break;
-      case 'under50':
-        filtered = filtered.filter(m => {
-          const cost = m.price_input * 1.0 + m.price_output * 0.5;
-          return cost > 20 && cost < 50;
-        });
-        filtered.sort((a, b) => {
-          const scoreA = calculateValueScore(a.price_input, a.price_output);
-          const scoreB = calculateValueScore(b.price_input, b.price_output);
-          return scoreB - scoreA;
-        });
-        break;
-      case 'unlimited':
-        // Ordenar por contexto (maior primeiro)
-        filtered.sort((a, b) => b.context_window - a.context_window);
-        break;
-      default:
-        filtered.sort((a, b) => {
-          const scoreA = calculateValueScore(a.price_input, a.price_output);
-          const scoreB = calculateValueScore(b.price_input, b.price_output);
-          return scoreB - scoreA;
-        });
+      }
+    } catch (dbError) {
+      console.log('Database error, using fallback:', dbError);
     }
     
-    const models = filtered.map((m, i) => transformModel(m, i + 1));
+    // FALLBACK: usar dados estáticos se banco falhar ou estiver vazio
+    const models = getFallbackModels(category);
     
     return NextResponse.json({ 
       models,
       total: models.length,
+      source: 'fallback',
       updated_at: new Date().toISOString(),
     });
     
