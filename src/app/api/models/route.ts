@@ -41,33 +41,66 @@ export async function GET(request: Request) {
     }
     
     // Transform data
-    let models = result.rows.map((row: any) => ({
-      id: row.id,
-      name: row.name,
-      provider: row.provider,
-      context_length: row.context_window,
-      pricing: {
-        prompt: parseFloat(row.price_input),
-        completion: parseFloat(row.price_output),
-      },
-      // Value score = Performance / Price (currently just 1/price since no perf data)
-      cost_benefit_scores: {
-        coding: row.monthly_cost > 0 ? 1000.0 / row.monthly_cost : 0,
-        general: row.monthly_cost > 0 ? 1000.0 / row.monthly_cost : 0,
-      },
-      // Individual benchmark scores
-      benchmarks: {
-        swe_bench: row.swe_bench_verified ? parseFloat(row.swe_bench_verified) : null,
-        agentic: row.agentic_score ? parseFloat(row.agentic_score) : null,
-        intelligence: row.intelligence_score ? parseFloat(row.intelligence_score) : null,
-        bfcl: row.bfcl_score ? parseFloat(row.bfcl_score) : null,
-        arena_elo: row.arena_elo ? parseFloat(row.arena_elo) : null,
-        aider: row.aider_polyglot_score ? parseFloat(row.aider_polyglot_score) : null,
-      },
-      monthly_cost: parseFloat(row.monthly_cost),
-    }));
+    let models = result.rows.map((row: any) => {
+      const monthlyCost = parseFloat(row.monthly_cost);
+      const sweBench = row.swe_bench_verified ? parseFloat(row.swe_bench_verified) : null;
+      const intelligence = row.intelligence_score ? parseFloat(row.intelligence_score) : null;
+      const arenaElo = row.arena_elo ? parseFloat(row.arena_elo) : null;
+      
+      // Performance score = weighted average of available benchmarks
+      // Priority: SWE-bench (coding) > Intelligence > Arena ELO
+      let performanceScore = 0;
+      if (sweBench) {
+        performanceScore = sweBench; // Primary metric for coding
+      } else if (intelligence) {
+        performanceScore = intelligence * 0.5; // Scale down to match SWE-bench range
+      } else if (arenaElo) {
+        performanceScore = (arenaElo - 1200) / 5; // Normalize ELO to ~0-100 range
+      }
+      
+      // Value score = Performance / Price
+      // If no performance data, fall back to inverse price
+      let valueScore;
+      if (performanceScore > 0 && monthlyCost > 0) {
+        valueScore = performanceScore / monthlyCost * 10; // Scale factor
+      } else if (monthlyCost > 0) {
+        valueScore = 1000.0 / monthlyCost;
+      } else {
+        valueScore = 0;
+      }
+      
+      return {
+        id: row.id,
+        name: row.name,
+        provider: row.provider,
+        context_length: row.context_window,
+        pricing: {
+          prompt: parseFloat(row.price_input),
+          completion: parseFloat(row.price_output),
+        },
+        cost_benefit_scores: {
+          coding: valueScore,
+          general: valueScore,
+        },
+        performance: {
+          swe_bench: sweBench,
+          intelligence: intelligence,
+          arena_elo: arenaElo,
+          score: performanceScore,
+        },
+        benchmarks: {
+          swe_bench: sweBench,
+          agentic: row.agentic_score ? parseFloat(row.agentic_score) : null,
+          intelligence: intelligence,
+          bfcl: row.bfcl_score ? parseFloat(row.bfcl_score) : null,
+          arena_elo: arenaElo,
+          aider: row.aider_polyglot_score ? parseFloat(row.aider_polyglot_score) : null,
+        },
+        monthly_cost: monthlyCost,
+      };
+    });
     
-    // Filter by category
+    // Filter and sort by category
     switch (category) {
       case 'free':
         models = models.filter((m: any) => m.monthly_cost === 0);
@@ -85,7 +118,7 @@ export async function GET(request: Request) {
         models.sort((a: any, b: any) => b.cost_benefit_scores.coding - a.cost_benefit_scores.coding);
         break;
       case 'unlimited':
-        // Sort by performance (if available) or context
+        // Sort by performance (SWE-bench first, then intelligence)
         models.sort((a: any, b: any) => {
           const perfA = a.benchmarks.swe_bench || a.benchmarks.intelligence || 0;
           const perfB = b.benchmarks.swe_bench || b.benchmarks.intelligence || 0;
