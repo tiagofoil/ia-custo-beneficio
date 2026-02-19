@@ -14,7 +14,6 @@ SELECT
     lm.supports_reasoning,
     b.price_input,
     b.price_output,
-    b.context_window as benchmark_context,
     -- Preço médio por token
     (b.price_input + b.price_output) / 2.0 as avg_price_per_1m,
     -- Custo estimado mensal (1M input + 500K output)
@@ -30,9 +29,7 @@ SELECT
         WHEN lm.context_window > 0 
         THEN LEAST(lm.context_window / 10000.0, 100)
         ELSE 0 
-    END as context_score,
-    b.data_source,
-    b.collected_at
+    END as context_score
 FROM value.llm_master_list lm
 JOIN value.benchmarks b ON b.llm_id = lm.id
 WHERE lm.is_active = TRUE
