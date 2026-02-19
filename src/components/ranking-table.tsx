@@ -149,7 +149,7 @@ export function RankingTable() {
             cursor: 'pointer',
           }}
         >
-          💰 Value (Price/Perf)
+          Value (Price/Perf)
         </button>
         <button
           onClick={() => setViewMode('performance')}
@@ -163,7 +163,7 @@ export function RankingTable() {
             cursor: 'pointer',
           }}
         >
-          🏆 Performance
+          Performance
         </button>
       </div>
 
@@ -250,7 +250,7 @@ export function RankingTable() {
                       </div>
                       {!hasBenchmarks && (
                         <span style={{ fontSize: 10, color: '#F59E0B', marginTop: 4, display: 'block' }}>
-                          ⚠️ Missing benchmark data
+                          Missing benchmark data
                         </span>
                       )}
                     </td>
@@ -354,7 +354,7 @@ export function RankingTable() {
       </div>
 
       <div style={{ textAlign: 'center', marginTop: 24, color: 'var(--text-dim)', fontSize: 13 }}>
-        💡 Click on any row to see detailed benchmark data
+        Click on any row to see detailed benchmark data
       </div>
 
       {/* Legend */}
