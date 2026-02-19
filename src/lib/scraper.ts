@@ -129,7 +129,7 @@ async function scrapeArtificialAnalysis(browser: any): Promise<Partial<ScrapedBe
       return rows;
     });
     
-    return data.map(d => ({
+    return data.map((d: { name: string; score: number }) => ({
       model_id: MODEL_MAPPINGS[d.name] || d.name,
       source: 'artificial_analysis',
       intelligence_score: d.score,
@@ -174,7 +174,7 @@ async function scrapeArena(browser: any): Promise<Partial<ScrapedBenchmark>[]> {
       return rows;
     });
     
-    return data.map(d => ({
+    return data.map((d: { name: string; elo: number }) => ({
       model_id: MODEL_MAPPINGS[d.name] || d.name,
       source: 'arena',
       arena_elo: d.elo,
@@ -219,7 +219,7 @@ async function scrapeSWEBench(browser: any): Promise<Partial<ScrapedBenchmark>[]
       return rows;
     });
     
-    return data.map(d => ({
+    return data.map((d: { name: string; resolved: number }) => ({
       model_id: MODEL_MAPPINGS[d.name] || d.name,
       source: 'swe_bench',
       swe_bench: d.resolved,
