@@ -4,15 +4,6 @@ import { useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { RecommendationButton } from "./recommendation-button";
 
-interface FreeTier {
-  is_free: boolean;
-  type: "local" | "api";
-  provider: string;
-  limitations?: string;
-  url?: string;
-  requirements?: string;
-}
-
 interface Benchmarks {
   swe_bench?: number | null;
   agentic?: number | null;
@@ -20,6 +11,7 @@ interface Benchmarks {
   bfcl?: number | null;
   arena_elo?: number | null;
   aider?: number | null;
+  composite?: number;
 }
 
 interface Model {
@@ -27,19 +19,21 @@ interface Model {
   name: string;
   provider: string;
   pricing: { prompt: number; completion: number };
-  cost_benefit_scores: { coding: number; general: number };
-  benchmarks: Benchmarks;
-  free_tier?: FreeTier;
+  performance: Benchmarks;
+  scores: {
+    performance: number;
+    value: number;
+    intermediate: number;
+  };
   rank?: number;
   monthly_cost?: number;
   context_length?: number;
 }
 
-type PriceCategory = "free" | "under10" | "10to20" | "under50" | "unlimited";
-type ViewMode = "value" | "performance" | "all";
+type Category = "cost-savings" | "intermediate" | "best-performance";
 
-interface PriceFilter {
-  key: PriceCategory;
+interface CategoryFilter {
+  key: Category;
   label: string;
   description: string;
 }
@@ -47,17 +41,26 @@ interface PriceFilter {
 export function RankingTable() {
   const { t } = useI18n();
   const [models, setModels] = useState<Model[]>([]);
-  const [activeCategory, setActiveCategory] = useState<PriceCategory>("under10");
-  const [viewMode, setViewMode] = useState<ViewMode>("value");
+  const [activeCategory, setActiveCategory] = useState<Category>("intermediate");
   const [loading, setLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  const priceFilters: PriceFilter[] = [
-    { key: "free", label: "$0.00", description: "Free" },
-    { key: "under10", label: "Under $10", description: "/ month" },
-    { key: "10to20", label: "$10 - $20", description: "/ month" },
-    { key: "under50", label: "Under $50", description: "/ month" },
-    { key: "unlimited", label: "Unlimited", description: "Power First" },
+  const categories: CategoryFilter[] = [
+    { 
+      key: "cost-savings", 
+      label: "Cost Savings", 
+      description: "Best price for your budget" 
+    },
+    { 
+      key: "intermediate", 
+      label: "Balanced", 
+      description: "70% Performance / 30% Price" 
+    },
+    { 
+      key: "best-performance", 
+      label: "Best Performance", 
+      description: "Maximum coding power" 
+    },
   ];
 
   useEffect(() => {
@@ -71,27 +74,21 @@ export function RankingTable() {
       .catch(() => setLoading(false));
   }, [activeCategory]);
 
-  const isUnlimited = activeCategory === 'unlimited';
-
-  // Helper to format benchmark value
   const formatBenchmark = (val: number | null | undefined): string => {
     if (val === null || val === undefined) return "—";
     return val.toFixed(1);
   };
 
-  // Calculate display score based on view mode
-  const getDisplayScore = (m: Model): { value: number; label: string; suffix: string } => {
-    if (isUnlimited || viewMode === 'performance') {
-      // For performance, prioritize: SWE-bench > Intelligence > Arena
-      const perf = m.benchmarks.swe_bench || m.benchmarks.intelligence || m.benchmarks.arena_elo || 0;
-      return { value: perf, label: 'Perf', suffix: perf > 100 ? '' : '%' };
+  const getScoreDisplay = (m: Model) => {
+    switch (activeCategory) {
+      case 'cost-savings':
+        return { value: m.monthly_cost || 0, label: '$/mo', isPrice: true };
+      case 'best-performance':
+        return { value: m.scores?.performance || 0, label: 'Perf', isPrice: false };
+      case 'intermediate':
+      default:
+        return { value: m.scores?.intermediate || 0, label: 'Score', isPrice: false };
     }
-    // Value mode
-    return { 
-      value: m.cost_benefit_scores?.coding || 0, 
-      label: 'Value', 
-      suffix: '' 
-    };
   };
 
   if (loading) {
@@ -116,58 +113,19 @@ export function RankingTable() {
     <div>
       {/* Section Title */}
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <h2 style={{ 
-          fontSize: 'clamp(24px, 4vw, 32px)', 
-          fontWeight: 700,
-          marginBottom: 8 
-        }}>
-          {viewMode === 'performance' ? 'Performance Rankings' : 'Best Value for Coding'}
+        <h2 style={{ fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 700, marginBottom: 8 }}>
+          {activeCategory === 'cost-savings' && 'Best Value for Money'}
+          {activeCategory === 'intermediate' && 'Balanced Performance & Price'}
+          {activeCategory === 'best-performance' && 'Maximum Coding Power'}
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: 16 }}>
-          {viewMode === 'performance' 
-            ? 'Ranked by coding benchmarks (SWE-bench, Intelligence, Arena)' 
-            : 'Ranked by price/performance ratio'}
+          {activeCategory === 'cost-savings' && 'Ranked by lowest price per token'}
+          {activeCategory === 'intermediate' && '70% Performance weight + 30% Price weight'}
+          {activeCategory === 'best-performance' && 'Ranked by coding benchmarks only'}
         </p>
       </div>
 
-      {/* View Mode Toggle */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center',
-        gap: 8,
-        marginBottom: 24 
-      }}>
-        <button
-          onClick={() => setViewMode('value')}
-          style={{
-            padding: '10px 20px',
-            borderRadius: 8,
-            border: 'none',
-            background: viewMode === 'value' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
-            color: viewMode === 'value' ? '#000' : 'var(--text)',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          Value (Price/Perf)
-        </button>
-        <button
-          onClick={() => setViewMode('performance')}
-          style={{
-            padding: '10px 20px',
-            borderRadius: 8,
-            border: 'none',
-            background: viewMode === 'performance' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
-            color: viewMode === 'performance' ? '#000' : 'var(--text)',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          Performance
-        </button>
-      </div>
-
-      {/* Price Category Filters */}
+      {/* Category Filters */}
       <div style={{ 
         display: 'flex', 
         flexWrap: 'wrap',
@@ -175,16 +133,16 @@ export function RankingTable() {
         justifyContent: 'center',
         marginBottom: 32 
       }}>
-        {priceFilters.map((filter) => (
+        {categories.map((cat) => (
           <button
-            key={filter.key}
-            onClick={() => setActiveCategory(filter.key)}
+            key={cat.key}
+            onClick={() => setActiveCategory(cat.key)}
             style={{
-              background: activeCategory === filter.key 
+              background: activeCategory === cat.key 
                 ? 'var(--accent)' 
                 : 'rgba(255, 255, 255, 0.05)',
-              color: activeCategory === filter.key ? '#000' : 'var(--text)',
-              border: `1px solid ${activeCategory === filter.key ? 'var(--accent)' : 'rgba(255, 255, 255, 0.1)'}`,
+              color: activeCategory === cat.key ? '#000' : 'var(--text)',
+              border: `1px solid ${activeCategory === cat.key ? 'var(--accent)' : 'rgba(255, 255, 255, 0.1)'}`,
               borderRadius: 12,
               padding: '16px 24px',
               cursor: 'pointer',
@@ -192,11 +150,11 @@ export function RankingTable() {
               minWidth: 140,
             }}
           >
-            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
-              {filter.label}
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
+              {cat.label}
             </div>
-            <div style={{ fontSize: 13, opacity: 0.8, fontFamily: 'JetBrains Mono, monospace' }}>
-              {filter.description}
+            <div style={{ fontSize: 12, opacity: 0.8, fontFamily: 'JetBrains Mono, monospace' }}>
+              {cat.description}
             </div>
           </button>
         ))}
@@ -204,7 +162,7 @@ export function RankingTable() {
 
       {/* Results count */}
       <div style={{ textAlign: 'center', marginBottom: 24, color: 'var(--text-secondary)', fontSize: 14 }}>
-        Showing {models.length} models {viewMode === 'performance' && '(sorted by performance benchmarks)'}
+        Showing {models.length} models
       </div>
 
       {/* Table */}
@@ -216,19 +174,16 @@ export function RankingTable() {
               <th>Model</th>
               <th style={{ textAlign: 'right', width: 100 }}>Input</th>
               <th style={{ textAlign: 'right', width: 100 }}>Output</th>
-              <th style={{ textAlign: 'center', width: 120 }}>SWE-bench</th>
+              <th style={{ textAlign: 'center', width: 100 }}>SWE-bench</th>
               <th style={{ textAlign: 'center', width: 100 }}>Intelligence</th>
-              <th style={{ textAlign: 'center', width: 80 }}>BFCL</th>
-              <th style={{ textAlign: 'center', width: 90 }}>Arena</th>
-              <th style={{ textAlign: 'center', width: 80 }}>Aider</th>
+              <th style={{ textAlign: 'center', width: 80 }}>Arena</th>
               <th style={{ textAlign: 'right', width: 100 }}>Score</th>
             </tr>
           </thead>
           <tbody>
             {models.map((m, i) => {
+              const score = getScoreDisplay(m);
               const isTop3 = i < 3;
-              const score = getDisplayScore(m);
-              const hasBenchmarks = m.benchmarks.swe_bench || m.benchmarks.intelligence || m.benchmarks.arena_elo;
               
               return (
                 <>
@@ -248,11 +203,6 @@ export function RankingTable() {
                       <div className="font-mono" style={{ fontSize: 12, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
                         {m.provider}
                       </div>
-                      {!hasBenchmarks && (
-                        <span style={{ fontSize: 10, color: '#F59E0B', marginTop: 4, display: 'block' }}>
-                          Missing benchmark data
-                        </span>
-                      )}
                     </td>
                     
                     <td style={{ textAlign: 'right' }}>
@@ -265,34 +215,22 @@ export function RankingTable() {
                     
                     <td style={{ textAlign: 'center' }}>
                       <span className="font-mono" style={{ 
-                        color: m.benchmarks.swe_bench ? '#10B981' : 'var(--text-dim)',
-                        fontWeight: m.benchmarks.swe_bench ? 600 : 400
+                        color: m.performance.swe_bench ? '#10B981' : 'var(--text-dim)',
+                        fontWeight: m.performance.swe_bench ? 600 : 400
                       }}>
-                        {formatBenchmark(m.benchmarks.swe_bench)}%
+                        {formatBenchmark(m.performance.swe_bench)}%
                       </span>
                     </td>
                     
                     <td style={{ textAlign: 'center' }}>
-                      <span className="font-mono" style={{ color: m.benchmarks.intelligence ? 'var(--text)' : 'var(--text-dim)' }}>
-                        {formatBenchmark(m.benchmarks.intelligence)}
+                      <span className="font-mono" style={{ color: m.performance.intelligence ? 'var(--text)' : 'var(--text-dim)' }}>
+                        {formatBenchmark(m.performance.intelligence)}
                       </span>
                     </td>
                     
                     <td style={{ textAlign: 'center' }}>
-                      <span className="font-mono" style={{ color: m.benchmarks.bfcl ? 'var(--text)' : 'var(--text-dim)' }}>
-                        {formatBenchmark(m.benchmarks.bfcl)}
-                      </span>
-                    </td>
-                    
-                    <td style={{ textAlign: 'center' }}>
-                      <span className="font-mono" style={{ color: m.benchmarks.arena_elo ? 'var(--text)' : 'var(--text-dim)' }}>
-                        {m.benchmarks.arena_elo ? Math.round(m.benchmarks.arena_elo) : '—'}
-                      </span>
-                    </td>
-                    
-                    <td style={{ textAlign: 'center' }}>
-                      <span className="font-mono" style={{ color: m.benchmarks.aider ? 'var(--text)' : 'var(--text-dim)' }}>
-                        {formatBenchmark(m.benchmarks.aider)}%
+                      <span className="font-mono" style={{ color: m.performance.arena_elo ? 'var(--text)' : 'var(--text-dim)' }}>
+                        {m.performance.arena_elo ? Math.round(m.performance.arena_elo) : '—'}
                       </span>
                     </td>
                     
@@ -302,17 +240,20 @@ export function RankingTable() {
                         fontWeight: 700,
                         fontSize: 15
                       }}>
-                        {score.value > 0 ? `${score.value.toFixed(score.value > 100 ? 0 : 1)}${score.suffix}` : '—'}
+                        {score.isPrice 
+                          ? `~$${score.value.toFixed(2)}`
+                          : score.value.toFixed(1)
+                        }
                       </span>
                       <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>{score.label}</div>
                     </td>
                   </tr>
                   
-                  {/* Expanded row with details */}
+                  {/* Expanded row */}
                   {expandedRow === m.id && (
                     <tr>
-                      <td colSpan={10} style={{ background: 'rgba(0,0,0,0.3)', padding: 20 }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
+                      <td colSpan={8} style={{ background: 'rgba(0,0,0,0.3)', padding: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20 }}>
                           <div>
                             <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: 'var(--text-dim)' }}>Model Details</h4>
                             <p style={{ margin: 0, fontSize: 13 }}>Context: {(m.context_length || 0).toLocaleString()} tokens</p>
@@ -322,19 +263,13 @@ export function RankingTable() {
                           <div>
                             <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: 'var(--text-dim)' }}>All Benchmarks</h4>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px', fontSize: 13 }}>
-                              <span>SWE-bench:</span> <span style={{ color: m.benchmarks.swe_bench ? '#10B981' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.swe_bench)}%</span>
-                              <span>Agentic:</span> <span style={{ color: m.benchmarks.agentic ? 'var(--text)' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.agentic)}</span>
-                              <span>Intelligence:</span> <span style={{ color: m.benchmarks.intelligence ? 'var(--text)' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.intelligence)}</span>
-                              <span>BFCL:</span> <span style={{ color: m.benchmarks.bfcl ? 'var(--text)' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.bfcl)}</span>
-                              <span>Arena ELO:</span> <span style={{ color: m.benchmarks.arena_elo ? 'var(--text)' : 'var(--text-dim)' }}>{m.benchmarks.arena_elo ? Math.round(m.benchmarks.arena_elo) : '—'}</span>
-                              <span>Aider:</span> <span style={{ color: m.benchmarks.aider ? 'var(--text)' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.aider)}%</span>
+                              <span>SWE-bench:</span> <span>{formatBenchmark(m.performance.swe_bench)}%</span>
+                              <span>Intelligence:</span> <span>{formatBenchmark(m.performance.intelligence)}</span>
+                              <span>Arena ELO:</span> <span>{m.performance.arena_elo ? Math.round(m.performance.arena_elo) : '—'}</span>
+                              <span>Agentic:</span> <span>{formatBenchmark(m.performance.agentic)}</span>
+                              <span>BFCL:</span> <span>{formatBenchmark(m.performance.bfcl)}</span>
+                              <span>Aider:</span> <span>{formatBenchmark(m.performance.aider)}%</span>
                             </div>
-                          </div>
-                          
-                          <div>
-                            <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: 'var(--text-dim)' }}>Pricing</h4>
-                            <p style={{ margin: 0, fontSize: 13 }}>Input: ${m.pricing.prompt}/1M tokens</p>
-                            <p style={{ margin: '4px 0 0 0', fontSize: 13 }}>Output: ${m.pricing.completion}/1M tokens</p>
                           </div>
                           
                           {isTop3 && (
@@ -370,11 +305,10 @@ export function RankingTable() {
         fontSize: 13,
         color: 'var(--text-secondary)'
       }}>
-        <span><strong>SWE-bench:</strong> % of real GitHub issues resolved</span>
-        <span><strong>Intelligence:</strong> Artificial Analysis index (0-100)</span>
-        <span><strong>BFCL:</strong> Function calling ability (0-100)</span>
-        <span><strong>Arena:</strong> Chatbot Arena ELO rating</span>
-        <span><strong>Aider:</strong> Multi-language coding %</span>
+        <span><strong>SWE-bench:</strong> % real GitHub issues resolved</span>
+        <span><strong>Intelligence:</strong> Artificial Analysis index</span>
+        <span><strong>Arena:</strong> Chatbot Arena ELO</span>
+        <span><strong>Composite:</strong> Weighted performance score</span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 24, color: 'var(--text-dim)', fontSize: 14 }}>
