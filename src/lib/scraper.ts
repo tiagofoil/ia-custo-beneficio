@@ -75,7 +75,16 @@ export async function scrapeAllBenchmarks(): Promise<ScrapedBenchmark[]> {
       console.log(`[Scraper] Scraping ${source.name}...`);
       try {
         const data = await source.scrape(browser);
-        results.push(...data.map(d => ({ ...d, scraped_at: timestamp })));
+        results.push(...data.map(d => ({ 
+          model_id: d.model_id || 'unknown',
+          source: d.source || source.name,
+          intelligence_score: d.intelligence_score,
+          arena_elo: d.arena_elo,
+          swe_bench: d.swe_bench,
+          agentic_score: d.agentic_score,
+          bfcl_score: d.bfcl_score,
+          scraped_at: timestamp 
+        })));
         console.log(`[Scraper] ${source.name}: ${data.length} models`);
       } catch (e: any) {
         console.error(`[Scraper] ${source.name} failed:`, e.message);
