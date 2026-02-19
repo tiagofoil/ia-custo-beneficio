@@ -9,10 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^143.0.4",
     "crawlee": "^3.16.0",
     "next": "16.1.6",
     "pg": "^8.18.0",
     "playwright": "^1.58.2",
+    "playwright-core": "^1.58.2",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },

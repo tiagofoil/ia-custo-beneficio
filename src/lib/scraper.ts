@@ -1,9 +1,10 @@
 /**
- * Real Web Scraper using Playwright
- * Scrapes benchmarks from Artificial Analysis, Arena, SWE-bench, Vellum, BFCL
+ * Real Web Scraper using Playwright + Chromium for Serverless
+ * Scrapes benchmarks from Artificial Analysis, Arena, SWE-bench
  */
 
-import { chromium, Browser, Page } from 'playwright';
+import chromium from '@sparticuz/chromium';
+import { chromium as playwrightChromium } from 'playwright-core';
 
 interface ScrapedBenchmark {
   model_id: string;
@@ -18,7 +19,6 @@ interface ScrapedBenchmark {
 
 // Model name mapping from site-specific names to OpenRouter IDs
 const MODEL_MAPPINGS: Record<string, string> = {
-  // Artificial Analysis / Arena names -> OpenRouter IDs
   'GPT-5': 'openai/gpt-5',
   'GPT-5.1': 'openai/gpt-5.1', 
   'GPT-5.2': 'openai/gpt-5.2',
@@ -50,17 +50,13 @@ export async function scrapeAllBenchmarks(): Promise<ScrapedBenchmark[]> {
   const results: ScrapedBenchmark[] = [];
   const timestamp = new Date().toISOString();
   
-  console.log('[Scraper] Launching browser...');
+  console.log('[Scraper] Launching browser with @sparticuz/chromium...');
   
-  // Launch browser with minimal args for serverless
-  const browser = await chromium.launch({
-    headless: true,
-    args: [
-      '--disable-gpu',
-      '--disable-dev-shm-usage',
-      '--disable-setuid-sandbox',
-      '--no-sandbox',
-    ],
+  // Launch browser with @sparticuz/chromium for serverless compatibility
+  const browser = await playwrightChromium.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
   });
   
   try {
@@ -103,27 +99,22 @@ export async function scrapeAllBenchmarks(): Promise<ScrapedBenchmark[]> {
   return merged;
 }
 
-async function scrapeArtificialAnalysis(browser: Browser): Promise<Partial<ScrapedBenchmark>[]> {
+async function scrapeArtificialAnalysis(browser: any): Promise<Partial<ScrapedBenchmark>[]> {
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
   });
   const page = await context.newPage();
   
   try {
-    // Navigate to Artificial Analysis
     await page.goto('https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index', {
       waitUntil: 'networkidle',
       timeout: 30000,
     });
     
-    // Wait for the chart/table to load
     await page.waitForSelector('table, [data-testid]', { timeout: 10000 });
     
-    // Extract data using page evaluation
     const data = await page.evaluate(() => {
       const rows: Array<{ name: string; score: number }> = [];
-      
-      // Try to find table rows with model data
       const tableRows = document.querySelectorAll('table tbody tr, .model-row, [data-model-name]');
       
       tableRows.forEach(row => {
@@ -144,7 +135,6 @@ async function scrapeArtificialAnalysis(browser: Browser): Promise<Partial<Scrap
       return rows;
     });
     
-    // Map to our format
     return data.map(d => ({
       model_id: MODEL_MAPPINGS[d.name] || d.name,
       source: 'artificial_analysis',
@@ -159,7 +149,7 @@ async function scrapeArtificialAnalysis(browser: Browser): Promise<Partial<Scrap
   }
 }
 
-async function scrapeArena(browser: Browser): Promise<Partial<ScrapedBenchmark>[]> {
+async function scrapeArena(browser: any): Promise<Partial<ScrapedBenchmark>[]> {
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
   });
@@ -175,7 +165,6 @@ async function scrapeArena(browser: Browser): Promise<Partial<ScrapedBenchmark>[
     
     const data = await page.evaluate(() => {
       const rows: Array<{ name: string; elo: number }> = [];
-      
       const tableRows = document.querySelectorAll('table tbody tr');
       
       tableRows.forEach(row => {
@@ -208,7 +197,7 @@ async function scrapeArena(browser: Browser): Promise<Partial<ScrapedBenchmark>[
   }
 }
 
-async function scrapeSWEBench(browser: Browser): Promise<Partial<ScrapedBenchmark>[]> {
+async function scrapeSWEBench(browser: any): Promise<Partial<ScrapedBenchmark>[]> {
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
   });
@@ -224,7 +213,6 @@ async function scrapeSWEBench(browser: Browser): Promise<Partial<ScrapedBenchmar
     
     const data = await page.evaluate(() => {
       const rows: Array<{ name: string; resolved: number }> = [];
-      
       const tableRows = document.querySelectorAll('table tbody tr');
       
       tableRows.forEach(row => {
@@ -269,7 +257,6 @@ function mergeResults(results: ScrapedBenchmark[]): ScrapedBenchmark[] {
       };
     }
     
-    // Merge all benchmark fields
     if (result.intelligence_score) byModel[result.model_id].intelligence_score = result.intelligence_score;
     if (result.arena_elo) byModel[result.model_id].arena_elo = result.arena_elo;
     if (result.swe_bench) byModel[result.model_id].swe_bench = result.swe_bench;
