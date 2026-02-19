@@ -13,23 +13,30 @@ interface FreeTier {
   requirements?: string;
 }
 
+interface Benchmarks {
+  swe_bench?: number | null;
+  agentic?: number | null;
+  intelligence?: number | null;
+  bfcl?: number | null;
+  arena_elo?: number | null;
+  aider?: number | null;
+}
+
 interface Model {
   id: string;
   name: string;
   provider: string;
   pricing: { prompt: number; completion: number };
   cost_benefit_scores: { coding: number; general: number };
-  benchmarks?: {
-    arena_elo?: number;
-    swe_bench_full?: number;
-    intelligence_score?: number;
-  };
+  benchmarks: Benchmarks;
   free_tier?: FreeTier;
   rank?: number;
   monthly_cost?: number;
+  context_length?: number;
 }
 
 type PriceCategory = "free" | "under10" | "10to20" | "under50" | "unlimited";
+type ViewMode = "value" | "performance" | "all";
 
 interface PriceFilter {
   key: PriceCategory;
@@ -41,7 +48,9 @@ export function RankingTable() {
   const { t } = useI18n();
   const [models, setModels] = useState<Model[]>([]);
   const [activeCategory, setActiveCategory] = useState<PriceCategory>("under10");
+  const [viewMode, setViewMode] = useState<ViewMode>("value");
   const [loading, setLoading] = useState(true);
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   const priceFilters: PriceFilter[] = [
     { key: "free", label: "$0.00", description: "Free" },
@@ -53,7 +62,6 @@ export function RankingTable() {
 
   useEffect(() => {
     setLoading(true);
-    // Busca do banco via API - já vem filtrado e ordenado
     fetch(`/api/models?category=${activeCategory}`)
       .then(r => r.json())
       .then(data => {
@@ -64,6 +72,27 @@ export function RankingTable() {
   }, [activeCategory]);
 
   const isUnlimited = activeCategory === 'unlimited';
+
+  // Helper to format benchmark value
+  const formatBenchmark = (val: number | null | undefined): string => {
+    if (val === null || val === undefined) return "—";
+    return val.toFixed(1);
+  };
+
+  // Calculate display score based on view mode
+  const getDisplayScore = (m: Model): { value: number; label: string; suffix: string } => {
+    if (isUnlimited || viewMode === 'performance') {
+      // For performance, prioritize: SWE-bench > Intelligence > Arena
+      const perf = m.benchmarks.swe_bench || m.benchmarks.intelligence || m.benchmarks.arena_elo || 0;
+      return { value: perf, label: 'Perf', suffix: perf > 100 ? '' : '%' };
+    }
+    // Value mode
+    return { 
+      value: m.cost_benefit_scores?.coding || 0, 
+      label: 'Value', 
+      suffix: '' 
+    };
+  };
 
   if (loading) {
     return (
@@ -92,11 +121,50 @@ export function RankingTable() {
           fontWeight: 700,
           marginBottom: 8 
         }}>
-          Best Price for Coding Power
+          {viewMode === 'performance' ? 'Performance Rankings' : 'Best Value for Coding'}
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: 16 }}>
-          Find the perfect LLM for your budget
+          {viewMode === 'performance' 
+            ? 'Ranked by coding benchmarks (SWE-bench, Intelligence, Arena)' 
+            : 'Ranked by price/performance ratio'}
         </p>
+      </div>
+
+      {/* View Mode Toggle */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center',
+        gap: 8,
+        marginBottom: 24 
+      }}>
+        <button
+          onClick={() => setViewMode('value')}
+          style={{
+            padding: '10px 20px',
+            borderRadius: 8,
+            border: 'none',
+            background: viewMode === 'value' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
+            color: viewMode === 'value' ? '#000' : 'var(--text)',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          💰 Value (Price/Perf)
+        </button>
+        <button
+          onClick={() => setViewMode('performance')}
+          style={{
+            padding: '10px 20px',
+            borderRadius: 8,
+            border: 'none',
+            background: viewMode === 'performance' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
+            color: viewMode === 'performance' ? '#000' : 'var(--text)',
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          🏆 Performance
+        </button>
       </div>
 
       {/* Price Category Filters */}
@@ -124,18 +192,10 @@ export function RankingTable() {
               minWidth: 140,
             }}
           >
-            <div style={{ 
-              fontSize: 20, 
-              fontWeight: 700,
-              marginBottom: 4 
-            }}>
+            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
               {filter.label}
             </div>
-            <div style={{ 
-              fontSize: 13, 
-              opacity: 0.8,
-              fontFamily: 'JetBrains Mono, monospace'
-            }}>
+            <div style={{ fontSize: 13, opacity: 0.8, fontFamily: 'JetBrains Mono, monospace' }}>
               {filter.description}
             </div>
           </button>
@@ -143,13 +203,8 @@ export function RankingTable() {
       </div>
 
       {/* Results count */}
-      <div style={{ 
-        textAlign: 'center', 
-        marginBottom: 24,
-        color: 'var(--text-secondary)',
-        fontSize: 14 
-      }}>
-        Showing {models.length} models
+      <div style={{ textAlign: 'center', marginBottom: 24, color: 'var(--text-secondary)', fontSize: 14 }}>
+        Showing {models.length} models {viewMode === 'performance' && '(sorted by performance benchmarks)'}
       </div>
 
       {/* Table */}
@@ -157,233 +212,173 @@ export function RankingTable() {
         <table className="table">
           <thead>
             <tr>
-              <th style={{ width: 80 }}>{t.ranking.rank}</th>
-              <th>{t.ranking.model}</th>
-              <th style={{ textAlign: 'right', width: 120 }}>{t.ranking.inputPrice}</th>
-              <th style={{ textAlign: 'right', width: 120 }}>{t.ranking.outputPrice}</th>
-              <th style={{ textAlign: 'right', width: 140 }}>
-                {isUnlimited ? 'Coding Power' : t.ranking.score}
-              </th>
-              <th style={{ width: 180 }}></th>
+              <th style={{ width: 60 }}>Rank</th>
+              <th>Model</th>
+              <th style={{ textAlign: 'right', width: 100 }}>Input</th>
+              <th style={{ textAlign: 'right', width: 100 }}>Output</th>
+              <th style={{ textAlign: 'center', width: 120 }}>SWE-bench</th>
+              <th style={{ textAlign: 'center', width: 100 }}>Intelligence</th>
+              <th style={{ textAlign: 'center', width: 80 }}>BFCL</th>
+              <th style={{ textAlign: 'center', width: 90 }}>Arena</th>
+              <th style={{ textAlign: 'center', width: 80 }}>Aider</th>
+              <th style={{ textAlign: 'right', width: 100 }}>Score</th>
             </tr>
           </thead>
           <tbody>
             {models.map((m, i) => {
-              const score = isUnlimited 
-                ? (m.benchmarks?.swe_bench_full || 0) 
-                : (m.cost_benefit_scores?.coding || 0);
-              const maxScore = isUnlimited ? 100 : 100;
-              const progressWidth = Math.min((score / maxScore) * 100, 100);
               const isTop3 = i < 3;
-              const isFree = m.free_tier?.is_free;
-              const isLocal = m.free_tier?.type === "local";
+              const score = getDisplayScore(m);
+              const hasBenchmarks = m.benchmarks.swe_bench || m.benchmarks.intelligence || m.benchmarks.arena_elo;
               
               return (
-                <tr key={m.id}>
-                  <td>
-                    <span className={`rank ${i < 3 ? `rank-${i+1}` : ''}`}>
-                      {String(i+1).padStart(2,'0')}
-                    </span>
-                  </td>
-                  
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 600, fontSize: 17 }}>{m.name}</span>
-                      
-                      {isFree && (
-                        <span
-                          style={{
-                            background: isLocal ? '#10B981' : '#00D4FF',
-                            color: '#000',
-                            padding: '2px 8px',
-                            borderRadius: 4,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            fontFamily: 'JetBrains Mono, monospace',
-                            textTransform: 'uppercase',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                          }}
-                        >
-                          {isLocal ? (
-                            <>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <rect x="2" y="3" width="20" height="14" rx="2" />
-                                <line x1="8" y1="21" x2="16" y2="21" />
-                                <line x1="12" y1="17" x2="12" y2="21" />
-                              </svg>
-                              LOCAL
-                            </>
-                          ) : (
-                            <>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                              FREE
-                            </>
-                          )}
+                <>
+                  <tr 
+                    key={m.id}
+                    onClick={() => setExpandedRow(expandedRow === m.id ? null : m.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>
+                      <span className={`rank ${i < 3 ? `rank-${i+1}` : ''}`}>
+                        {String(i+1).padStart(2,'0')}
+                      </span>
+                    </td>
+                    
+                    <td>
+                      <div style={{ fontWeight: 600, fontSize: 16 }}>{m.name}</div>
+                      <div className="font-mono" style={{ fontSize: 12, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+                        {m.provider}
+                      </div>
+                      {!hasBenchmarks && (
+                        <span style={{ fontSize: 10, color: '#F59E0B', marginTop: 4, display: 'block' }}>
+                          ⚠️ Missing benchmark data
                         </span>
                       )}
-                    </div>
+                    </td>
                     
-                    <div className="font-mono" style={{ 
-                      fontSize: 13, 
-                      color: 'var(--text-dim)',
-                      textTransform: 'uppercase',
-                      marginTop: 4
-                    }}>
-                      {m.provider}
-                    </div>
+                    <td style={{ textAlign: 'right' }}>
+                      <span className="font-mono">${m.pricing.prompt.toFixed(2)}</span>
+                    </td>
                     
-                    {isFree && m.free_tier && (
-                      <>
-                        <div style={{
-                          fontSize: 11,
-                          color: isLocal ? '#10B981' : 'var(--accent)',
-                          marginTop: 4,
-                          fontFamily: 'JetBrains Mono, monospace'
-                        }}>
-                          {isLocal ? (
-                            <span>Runs locally • {m.free_tier.requirements}</span>
-                          ) : (
-                            <span>Free tier • {m.free_tier.provider} • {m.free_tier.limitations}</span>
-                          )}
-                        </div>
-                        {m.free_tier.url && (
-                          <a 
-                            href={m.free_tier.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              fontSize: 11,
-                              color: 'var(--accent)',
-                              textDecoration: 'none',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              marginTop: 4,
-                            }}
-                          >
-                            Get free access 
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M7 17L17 7" />
-                              <polyline points="7 7 17 7 17 17" />
-                            </svg>
-                          </a>
-                        )}
-                      </>
-                    )}
+                    <td style={{ textAlign: 'right' }}>
+                      <span className="font-mono">${m.pricing.completion.toFixed(2)}</span>
+                    </td>
                     
-                    {!isFree && m.monthly_cost && m.monthly_cost > 0 && (
-                      <div style={{
-                        fontSize: 12,
-                        color: 'var(--accent)',
-                        marginTop: 4,
-                        fontFamily: 'JetBrains Mono, monospace'
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="font-mono" style={{ 
+                        color: m.benchmarks.swe_bench ? '#10B981' : 'var(--text-dim)',
+                        fontWeight: m.benchmarks.swe_bench ? 600 : 400
                       }}>
-                        ~${m.monthly_cost.toFixed(2)}/mo est.
-                      </div>
-                    )}
-                  </td>
-                  
-                  <td style={{ textAlign: 'right' }}>
-                    <span className="font-mono" style={{ fontSize: 15 }}>
-                      ${m.pricing.prompt.toFixed(2)}
-                    </span>
-                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>{t.ranking.per1MTokens}</div>
-                  </td>
-                  
-                  <td style={{ textAlign: 'right' }}>
-                    <span className="font-mono" style={{ fontSize: 15 }}>
-                      ${m.pricing.completion.toFixed(2)}
-                    </span>
-                    <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>{t.ranking.per1MTokens}</div>
-                  </td>
-                  
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div className="progress-bar" style={{ flex: 1, maxWidth: 80 }}>
-                        <div 
-                          className="progress-fill"
-                          style={{ width: `${progressWidth}%` }}
-                        />
-                      </div>
+                        {formatBenchmark(m.benchmarks.swe_bench)}%
+                      </span>
+                    </td>
+                    
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="font-mono" style={{ color: m.benchmarks.intelligence ? 'var(--text)' : 'var(--text-dim)' }}>
+                        {formatBenchmark(m.benchmarks.intelligence)}
+                      </span>
+                    </td>
+                    
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="font-mono" style={{ color: m.benchmarks.bfcl ? 'var(--text)' : 'var(--text-dim)' }}>
+                        {formatBenchmark(m.benchmarks.bfcl)}
+                      </span>
+                    </td>
+                    
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="font-mono" style={{ color: m.benchmarks.arena_elo ? 'var(--text)' : 'var(--text-dim)' }}>
+                        {m.benchmarks.arena_elo ? Math.round(m.benchmarks.arena_elo) : '—'}
+                      </span>
+                    </td>
+                    
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="font-mono" style={{ color: m.benchmarks.aider ? 'var(--text)' : 'var(--text-dim)' }}>
+                        {formatBenchmark(m.benchmarks.aider)}%
+                      </span>
+                    </td>
+                    
+                    <td style={{ textAlign: 'right' }}>
                       <span className="font-mono" style={{ 
                         color: 'var(--accent)', 
-                        width: 60, 
-                        textAlign: 'right',
-                        fontSize: 16,
-                        fontWeight: 600
+                        fontWeight: 700,
+                        fontSize: 15
                       }}>
-                        {isFree ? 'N/A' : score.toFixed(isUnlimited ? 0 : 1)}
-                        {isUnlimited && !isFree && (
-                          <span style={{ fontSize: 11, opacity: 0.7 }}>%</span>
-                        )}
+                        {score.value > 0 ? `${score.value.toFixed(score.value > 100 ? 0 : 1)}${score.suffix}` : '—'}
                       </span>
-                    </div>
-                    {isUnlimited && !isFree && m.benchmarks?.swe_bench_full && (
-                      <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4, textAlign: 'right' }}>
-                        SWE-bench
-                      </div>
-                    )}
-                  </td>
-
-                  <td>
-                    {isTop3 && !isFree && (
-                      <RecommendationButton rank={i + 1} modelName={m.name} />
-                    )}
-                    {isFree && (
-                      <a
-                        href={m.free_tier?.url || '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          padding: '10px 16px',
-                          background: isLocal ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0, 212, 255, 0.2)',
-                          color: isLocal ? '#10B981' : 'var(--accent)',
-                          border: `1px solid ${isLocal ? 'rgba(16, 185, 129, 0.4)' : 'rgba(0, 212, 255, 0.4)'}`,
-                          borderRadius: 8,
-                          fontSize: 13,
-                          fontWeight: 600,
-                          textDecoration: 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                        </svg>
-                        {isLocal ? 'Install' : 'Try Free'}
-                      </a>
-                    )}
-                  </td>
-                </tr>
+                      <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>{score.label}</div>
+                    </td>
+                  </tr>
+                  
+                  {/* Expanded row with details */}
+                  {expandedRow === m.id && (
+                    <tr>
+                      <td colSpan={10} style={{ background: 'rgba(0,0,0,0.3)', padding: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
+                          <div>
+                            <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: 'var(--text-dim)' }}>Model Details</h4>
+                            <p style={{ margin: 0, fontSize: 13 }}>Context: {(m.context_length || 0).toLocaleString()} tokens</p>
+                            <p style={{ margin: '4px 0 0 0', fontSize: 13 }}>Est. monthly: ${m.monthly_cost?.toFixed(2)}</p>
+                          </div>
+                          
+                          <div>
+                            <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: 'var(--text-dim)' }}>All Benchmarks</h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px', fontSize: 13 }}>
+                              <span>SWE-bench:</span> <span style={{ color: m.benchmarks.swe_bench ? '#10B981' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.swe_bench)}%</span>
+                              <span>Agentic:</span> <span style={{ color: m.benchmarks.agentic ? 'var(--text)' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.agentic)}</span>
+                              <span>Intelligence:</span> <span style={{ color: m.benchmarks.intelligence ? 'var(--text)' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.intelligence)}</span>
+                              <span>BFCL:</span> <span style={{ color: m.benchmarks.bfcl ? 'var(--text)' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.bfcl)}</span>
+                              <span>Arena ELO:</span> <span style={{ color: m.benchmarks.arena_elo ? 'var(--text)' : 'var(--text-dim)' }}>{m.benchmarks.arena_elo ? Math.round(m.benchmarks.arena_elo) : '—'}</span>
+                              <span>Aider:</span> <span style={{ color: m.benchmarks.aider ? 'var(--text)' : 'var(--text-dim)' }}>{formatBenchmark(m.benchmarks.aider)}%</span>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h4 style={{ margin: '0 0 8px 0', fontSize: 14, color: 'var(--text-dim)' }}>Pricing</h4>
+                            <p style={{ margin: 0, fontSize: 13 }}>Input: ${m.pricing.prompt}/1M tokens</p>
+                            <p style={{ margin: '4px 0 0 0', fontSize: 13 }}>Output: ${m.pricing.completion}/1M tokens</p>
+                          </div>
+                          
+                          {isTop3 && (
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <RecommendationButton rank={i + 1} modelName={m.name} />
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
               );
             })}
           </tbody>
         </table>
       </div>
 
+      <div style={{ textAlign: 'center', marginTop: 24, color: 'var(--text-dim)', fontSize: 13 }}>
+        💡 Click on any row to see detailed benchmark data
+      </div>
+
+      {/* Legend */}
       <div style={{ 
         display: 'flex', 
-        alignItems: 'center', 
+        flexWrap: 'wrap',
         justifyContent: 'center',
-        gap: 10,
-        marginTop: 24,
-        color: 'var(--text-dim)',
-        fontSize: 14
+        gap: 20,
+        marginTop: 32,
+        padding: 20,
+        background: 'rgba(255,255,255,0.03)',
+        borderRadius: 12,
+        fontSize: 13,
+        color: 'var(--text-secondary)'
       }}>
-        <span style={{
-          width: 8, height: 8,
-          background: 'var(--accent)',
-          borderRadius: '50%',
-          animation: 'pulse 2s infinite'
-        }} />
+        <span><strong>SWE-bench:</strong> % of real GitHub issues resolved</span>
+        <span><strong>Intelligence:</strong> Artificial Analysis index (0-100)</span>
+        <span><strong>BFCL:</strong> Function calling ability (0-100)</span>
+        <span><strong>Arena:</strong> Chatbot Arena ELO rating</span>
+        <span><strong>Aider:</strong> Multi-language coding %</span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 24, color: 'var(--text-dim)', fontSize: 14 }}>
+        <span style={{ width: 8, height: 8, background: 'var(--accent)', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
         <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }`}</style>
         <span>{t.ranking.updatedVia}</span>
       </div>
