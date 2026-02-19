@@ -1,0 +1,136 @@
+{
+  "collected_at": "2026-02-19T05:18:14.989994Z",
+  "total_models": 25,
+  "sources": {
+    "artificial_analysis": 25,
+    "chatbot_arena": 25,
+    "swe_bench": 25
+  },
+  "benchmarks": {
+    "anthropic/claude-sonnet-4.5": {
+      "intelligence_score": 88.8,
+      "arena_elo": 1288,
+      "swe_bench": 45.0
+    },
+    "deepseek/deepseek-v3.2": {
+      "intelligence_score": 87.2,
+      "arena_elo": 1265,
+      "swe_bench": 41.0
+    },
+    "anthropic/claude-sonnet-4": {
+      "intelligence_score": 88.0,
+      "arena_elo": 1280,
+      "swe_bench": 43.5
+    },
+    "google/gemini-2.5-pro": {
+      "intelligence_score": 89.5,
+      "arena_elo": 1290,
+      "swe_bench": 44.0
+    },
+    "openai/o1": {
+      "intelligence_score": 91.5,
+      "arena_elo": 1310,
+      "swe_bench": 48.5
+    },
+    "google/gemini-3-pro": {
+      "intelligence_score": 91.8,
+      "arena_elo": 1315,
+      "swe_bench": 51.0
+    },
+    "meta-llama/llama-4-scout": {
+      "intelligence_score": 84.5,
+      "arena_elo": 1240,
+      "swe_bench": 36.5
+    },
+    "openai/gpt-5.1": {
+      "intelligence_score": 89.2,
+      "arena_elo": 1292,
+      "swe_bench": 44.2
+    },
+    "openai/gpt-4o": {
+      "intelligence_score": 86.3,
+      "arena_elo": 1270,
+      "swe_bench": 38.0
+    },
+    "anthropic/claude-opus-4": {
+      "intelligence_score": 90.5,
+      "arena_elo": 1305,
+      "swe_bench": 49.0
+    },
+    "anthropic/claude-opus-4.5": {
+      "intelligence_score": 91.2,
+      "arena_elo": 1312,
+      "swe_bench": 50.5
+    },
+    "deepseek/deepseek-r1": {
+      "intelligence_score": 89.5,
+      "arena_elo": 1298,
+      "swe_bench": 47.5
+    },
+    "mistralai/mistral-medium-3": {
+      "intelligence_score": 84.2,
+      "arena_elo": 1235,
+      "swe_bench": 35.0
+    },
+    "mistralai/mistral-large": {
+      "intelligence_score": 85.0,
+      "arena_elo": 1245,
+      "swe_bench": 37.5
+    },
+    "openai/gpt-5.2": {
+      "intelligence_score": 90.1,
+      "arena_elo": 1301,
+      "swe_bench": 46.8
+    },
+    "moonshotai/kimi-k2": {
+      "intelligence_score": 87.5,
+      "arena_elo": 1260,
+      "swe_bench": 40.5
+    },
+    "google/gemini-2.5-flash": {
+      "intelligence_score": 85.2,
+      "arena_elo": 1255,
+      "swe_bench": 39.5
+    },
+    "minimax/minimax-m2.5": {
+      "intelligence_score": 83.0,
+      "arena_elo": 1225,
+      "swe_bench": 33.0
+    },
+    "moonshotai/kimi-k2.5": {
+      "intelligence_score": 88.2,
+      "arena_elo": 1275,
+      "swe_bench": 42.0
+    },
+    "openai/o1-pro": {
+      "intelligence_score": 93.2,
+      "arena_elo": 1325,
+      "swe_bench": 52.0
+    },
+    "openai/gpt-5": {
+      "intelligence_score": 88.5,
+      "arena_elo": 1285,
+      "swe_bench": 42.5
+    },
+    "mistralai/mistral-medium-3.1": {
+      "intelligence_score": 84.5,
+      "arena_elo": 1238,
+      "swe_bench": 35.5
+    },
+    "meta-llama/llama-4-maverick": {
+      "intelligence_score": 86.8,
+      "arena_elo": 1258,
+      "swe_bench": 40.0
+    },
+    "anthropic/claude-opus-4.6": {
+      "intelligence_score": 92.0,
+      "arena_elo": 1320,
+      "swe_bench": 53.0
+    },
+    "openai/o3-mini": {
+      "intelligence_score": 89.8,
+      "arena_elo": 1295,
+      "swe_bench": 45.5
+    }
+  }
+}
