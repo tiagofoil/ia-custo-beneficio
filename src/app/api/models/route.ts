@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
+// Force dynamic rendering for API route
+export const dynamic = 'force-dynamic';
+
 // GET /api/models - Lista todos os modelos
 export async function GET(request: Request) {
   try {

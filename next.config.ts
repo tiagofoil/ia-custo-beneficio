@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export',
-  distDir: 'dist',
+  // Removed 'output: export' to enable API routes with database
   images: {
     unoptimized: true,
   },
