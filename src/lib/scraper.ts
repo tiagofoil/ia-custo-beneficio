@@ -1,10 +1,10 @@
 /**
- * Real Web Scraper using Playwright + Chromium for Serverless
+ * Real Web Scraper using Puppeteer + Chromium for Serverless
  * Scrapes benchmarks from Artificial Analysis, Arena, SWE-bench
  */
 
+import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
-import { chromium as playwrightChromium } from 'playwright-core';
 
 interface ScrapedBenchmark {
   model_id: string;
@@ -50,17 +50,15 @@ export async function scrapeAllBenchmarks(): Promise<ScrapedBenchmark[]> {
   const results: ScrapedBenchmark[] = [];
   const timestamp = new Date().toISOString();
   
-  console.log('[Scraper] Launching browser with @sparticuz/chromium...');
+  console.log('[Scraper] Launching browser with puppeteer + @sparticuz/chromium...');
   
-  // Launch browser with @sparticuz/chromium for serverless compatibility
-  const browser = await playwrightChromium.launch({
+  const browser = await puppeteer.launch({
     args: chromium.args,
     executablePath: await chromium.executablePath(),
     headless: true,
   });
   
   try {
-    // Scrape each source
     const sources = [
       { name: 'artificial_analysis', scrape: scrapeArtificialAnalysis },
       { name: 'arena', scrape: scrapeArena },
@@ -92,7 +90,6 @@ export async function scrapeAllBenchmarks(): Promise<ScrapedBenchmark[]> {
     console.log('[Scraper] Browser closed');
   }
   
-  // Merge results by model_id
   const merged = mergeResults(results);
   console.log(`[Scraper] Total unique models: ${merged.length}`);
   
@@ -100,14 +97,11 @@ export async function scrapeAllBenchmarks(): Promise<ScrapedBenchmark[]> {
 }
 
 async function scrapeArtificialAnalysis(browser: any): Promise<Partial<ScrapedBenchmark>[]> {
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-  });
-  const page = await context.newPage();
+  const page = await browser.newPage();
   
   try {
     await page.goto('https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index', {
-      waitUntil: 'networkidle',
+      waitUntil: 'networkidle0',
       timeout: 30000,
     });
     
@@ -145,19 +139,16 @@ async function scrapeArtificialAnalysis(browser: any): Promise<Partial<ScrapedBe
     console.error('[Scraper] Artificial Analysis error:', e.message);
     return [];
   } finally {
-    await context.close();
+    await page.close();
   }
 }
 
 async function scrapeArena(browser: any): Promise<Partial<ScrapedBenchmark>[]> {
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-  });
-  const page = await context.newPage();
+  const page = await browser.newPage();
   
   try {
     await page.goto('https://lmarena.ai/leaderboard', {
-      waitUntil: 'networkidle',
+      waitUntil: 'networkidle0',
       timeout: 30000,
     });
     
@@ -193,19 +184,16 @@ async function scrapeArena(browser: any): Promise<Partial<ScrapedBenchmark>[]> {
     console.error('[Scraper] Arena error:', e.message);
     return [];
   } finally {
-    await context.close();
+    await page.close();
   }
 }
 
 async function scrapeSWEBench(browser: any): Promise<Partial<ScrapedBenchmark>[]> {
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-  });
-  const page = await context.newPage();
+  const page = await browser.newPage();
   
   try {
     await page.goto('https://www.swebench.com/', {
-      waitUntil: 'networkidle',
+      waitUntil: 'networkidle0',
       timeout: 30000,
     });
     
@@ -241,7 +229,7 @@ async function scrapeSWEBench(browser: any): Promise<Partial<ScrapedBenchmark>[]
     console.error('[Scraper] SWE-bench error:', e.message);
     return [];
   } finally {
-    await context.close();
+    await page.close();
   }
 }
 
