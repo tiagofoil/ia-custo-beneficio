@@ -56,7 +56,7 @@ export async function scrapeAllBenchmarks(): Promise<ScrapedBenchmark[]> {
   const browser = await playwrightChromium.launch({
     args: chromium.args,
     executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
+    headless: true,
   });
   
   try {
